@@ -1,0 +1,14 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@garrettmacmac/react-native-duo": ["../src/index.ts"],
+      "@garrettmacmac/react-native-duo/layout": ["../src/layout.ts"],
+      "@garrettmacmac/react-native-duo/testing": ["../src/testing.ts"],
+      "*": ["./node_modules/@types/*", "./node_modules/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}

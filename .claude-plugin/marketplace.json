@@ -1,0 +1,14 @@
+{
+  "name": "react-native-duo",
+  "owner": {
+    "name": "garrettmacmac",
+    "email": "garrett@garrettmac.io"
+  },
+  "plugins": [
+    {
+      "name": "react-native-duo",
+      "source": "./",
+      "description": "iPhone Duo, foldable and iPad layout rules for React Native and Expo apps using @garrettmacmac/react-native-duo."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Duo Example",
+    "slug": "react-native-duo-example",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.github.garrettmac.duo.example"
+    },
+    "android": {
+      "package": "io.github.garrettmac.duo.example"
+    },
+    "experiments": {
+      "tsconfigPaths": false
+    }
+  }
+}
