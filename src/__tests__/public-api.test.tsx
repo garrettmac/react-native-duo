@@ -42,6 +42,7 @@ describe('the public API', () => {
 
   it('puts the building blocks under /layout', () => {
     expect(Object.keys(layout).sort()).toEqual([
+      'ALL_EDGES',
       'ARRANGEMENT_PRIMARY_TESTID',
       'ARRANGEMENT_SECONDARY_TESTID',
       'ARRANGEMENT_TESTID',
@@ -66,6 +67,7 @@ describe('the public API', () => {
       'cameraClearance',
       'columnInsetTop',
       'detailShowsBack',
+      'edgesInBox',
       'evenColumnCount',
       'maxInsets',
       'pageMode',

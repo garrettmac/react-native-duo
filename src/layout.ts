@@ -8,7 +8,7 @@ export {activeDivision, arrangementLayout, splitParts} from './arrangement-layou
 export type {ArrangementInput, ArrangementLayout, Division, ViewState} from './arrangement-layout';
 export {placedFrame, useArrangementBox} from './measure';
 export type {ArrangementBox} from './measure';
-export {PANE_LAYOUT_TESTID, PANE_LEADING_TESTID, PANE_TRAILING_TESTID, PaneProvider, sidebarParts, sidebarWidth} from './pane';
+export {ALL_EDGES, edgesInBox, PANE_LAYOUT_TESTID, PANE_LEADING_TESTID, PANE_TRAILING_TESTID, PaneProvider, sidebarParts, sidebarWidth} from './pane';
 export {DUO_PAGE_CONTENT_TESTID, DUO_PAGE_STRIP_TESTID, DUO_PAGE_TESTID, pageMode, touchesEdge} from './page';
 export {usePaneBarEdge} from './page-context';
 export {DETAIL_STACK_TESTID, detailShowsBack} from './detail-stack';

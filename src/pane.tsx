@@ -8,9 +8,23 @@ import {I18nManager, StyleSheet, View, type StyleProp, type ViewStyle} from 'rea
 import {activeDivision, splitParts, type Division} from './arrangement-layout';
 import {useDuo} from './context';
 import {placedFrame, useArrangementBox} from './measure';
+import {REGULAR_WIDTH_MIN_DP} from './sizes';
 import type {Axis, Rect, WindowSize} from './types';
 
 export type PaneSide = 'only' | 'leading' | 'trailing';
+
+/**
+ * The edges of its box a pane reaches: the `PaneLayout` it is in, or the window outside one. `left` and `right` are the
+ * sides a style names, so a right-to-left layout that swaps sides names the leading side `left`.
+ */
+export interface PaneEdges {
+  top: boolean;
+  bottom: boolean;
+  left: boolean;
+  right: boolean;
+}
+
+export const ALL_EDGES: PaneEdges = {top: true, bottom: true, left: true, right: true};
 
 export interface Pane {
   split: boolean;
@@ -22,19 +36,48 @@ export interface Pane {
   height: number;
   /** Mounted to keep its state but not on screen: a split view's detail behind its list on a compact window. */
   hidden: boolean;
+  /** Where the safe area and a screen's own insets still apply: the edges of its `PaneLayout`, or of the window, it reaches. */
+  edges: PaneEdges;
 }
 
-const PaneContext = createContext<Pane | null>(null);
+/** A pane to provide; without `edges`, they are read from where it sits in the window. */
+export type PlacedPane = Omit<Pane, 'edges'> & {edges?: PaneEdges};
 
-export function PaneProvider({pane, children}: {pane: Pane; children: ReactNode}) {
+const PaneContext = createContext<PlacedPane | null>(null);
+
+export function PaneProvider({pane, children}: {pane: PlacedPane; children: ReactNode}) {
   return <PaneContext.Provider value={pane}>{children}</PaneContext.Provider>;
+}
+
+function edgesInWindow(pane: Rect, window: WindowSize): PaneEdges {
+  return {top: pane.y <= 0, bottom: pane.y + pane.height >= window.height, left: pane.x <= 0, right: pane.x + pane.width >= window.width};
 }
 
 /** The pane this component is in; outside any pane, the app's whole window. */
 export function usePane(): Pane {
   const placed = useContext(PaneContext);
   const {window} = useDuo();
-  return useMemo(() => placed ?? {split: false, side: 'only', x: 0, y: 0, width: window.width, height: window.height, hidden: false}, [placed, window]);
+  return useMemo(
+    () =>
+      placed
+        ? {...placed, edges: placed.edges ?? edgesInWindow(placed, window)}
+        : {split: false, side: 'only', x: 0, y: 0, width: window.width, height: window.height, hidden: false, edges: ALL_EDGES},
+    [placed, window],
+  );
+}
+
+/** The edges of a box of `size` that `frame` (physical points) reaches, named as a style names them. */
+export function edgesInBox(frame: Rect, size: WindowSize): PaneEdges {
+  const TOLERANCE = 0.5;
+  const physicalLeft = frame.x <= TOLERANCE;
+  const physicalRight = frame.x + frame.width >= size.width - TOLERANCE;
+  const swapped = I18nManager.isRTL && I18nManager.getConstants().doLeftAndRightSwapInRTL;
+  return {
+    top: frame.y <= TOLERANCE,
+    bottom: frame.y + frame.height >= size.height - TOLERANCE,
+    left: swapped ? physicalRight : physicalLeft,
+    right: swapped ? physicalLeft : physicalRight,
+  };
 }
 
 export const PANE_LAYOUT_TESTID = 'duo-pane-layout';
@@ -60,6 +103,16 @@ export interface PaneLayoutProps {
   maxLeadingWidth?: number;
   /** `auto` (the default) follows the pose; `always` or `never` forces two panes or one. An active fold still divides. */
   split?: 'auto' | 'always' | 'never';
+  /**
+   * The narrowest box that splits without a fold, in points. A regular window alone is not enough: a page sheet or
+   * form sheet on an iPad is narrower than its window, and halves of it would each be narrower than a phone. Default 600.
+   */
+  minSplitWidth?: number;
+  /**
+   * For `sheet`: dock the sheet beside its map, left and right in halves, on a regular box (one at least
+   * `minSplitWidth` wide on a regular window), in portrait too, instead of over it. Apple layers it; off by default.
+   */
+  dock?: boolean;
   /** The view the leading pane sits in. */
   leadingStyle?: StyleProp<ViewStyle>;
   /** The view the trailing pane sits in. */
@@ -84,22 +137,28 @@ export function sidebarWidth(width: number, {fraction = 0.35, min = 320, max}: {
   return Math.min(Math.max(width * fraction, Math.min(min, ceiling)), ceiling);
 }
 
-function splitAxis(arrangement: PaneArrangement, size: WindowSize, division: Division | null, regular: boolean): Axis | null {
+function splitAxis(arrangement: PaneArrangement, size: WindowSize, division: Division | null, regular: boolean, dock: boolean): Axis | null {
   if (division) return division.axis;
   if (arrangement === 'side-by-side') return size.width > size.height ? 'horizontal' : 'vertical';
-  if (arrangement === 'sheet') return null;
+  if (arrangement === 'sheet') return dock && regular ? 'horizontal' : null;
   return regular ? 'horizontal' : null;
+}
+
+/** The list's frame and the detail's: at half the width they are the same halves any split without a fold has. */
+function listDetailParts(size: WindowSize, leadingWidth: number, rtl: boolean): [Rect, Rect] {
+  return Math.round(leadingWidth) === Math.round(size.width / 2) ? splitParts(size, 'horizontal', null, rtl) : sidebarParts(size, leadingWidth, rtl);
 }
 
 /**
  * Two layers or two contents sharing a window. Leading is where you are, trailing is what you picked.
  * - `sheet`: a map with a sheet over it, Apple's overlay arrangement: layered in every pose but an active fold, which
  *   puts the map on one side and the sheet on the other. Size the sheet to `usePane()`; on a regular width keep it a
- *   card at the bottom center rather than the full width.
- * - `list-detail`: a list and the row it opened. One pane on a compact window (`compact` says which), both on a regular one.
+ *   card at the bottom center rather than the full width. `dock` puts it beside the map on a regular box instead.
+ * - `list-detail`: a list and the row it opened. One pane on a compact window or a box narrower than `minSplitWidth`
+ *   (`compact` says which), both on a regular one.
  * - `side-by-side`: two contents at once. Side by side when wider than tall, stacked when taller than wide.
  * An active fold always divides the two and nothing straddles it. Both stay mounted in every pose, so folding keeps
- * their state; each child reads its own part through `usePane()`.
+ * their state; each child reads its own part through `usePane()`, hidden whenever the pane around the layout is.
  */
 export function PaneLayout({
   leading,
@@ -110,6 +169,8 @@ export function PaneLayout({
   minLeadingWidth,
   maxLeadingWidth,
   split: forced = 'auto',
+  minSplitWidth = REGULAR_WIDTH_MIN_DP,
+  dock = false,
   leadingStyle,
   trailingStyle,
   style,
@@ -120,7 +181,8 @@ export function PaneLayout({
   const {ref, onLayout, size: measured, origin} = useArrangementBox();
   const size = measured ?? {width: outer.width, height: outer.height};
   const division = activeDivision({size, origin, regions});
-  const automatic = splitAxis(arrangement, size, division, sizeClass.horizontal === 'regular');
+  const regular = sizeClass.horizontal === 'regular' && size.width >= minSplitWidth;
+  const automatic = splitAxis(arrangement, size, division, regular, dock);
   const axis = division ? division.axis : forced === 'never' ? null : forced === 'always' ? (automatic ?? (size.width >= size.height ? 'horizontal' : 'vertical')) : automatic;
 
   const whole = {x: 0, y: 0, width: size.width, height: size.height};
@@ -129,24 +191,26 @@ export function PaneLayout({
   const [leadingFrame, trailingFrame] = !axis
     ? [whole, whole]
     : sidebar
-      ? sidebarParts(size, sidebarWidth(size.width, {fraction: leadingFraction, min: minLeadingWidth, max: maxLeadingWidth}), rtl)
+      ? listDetailParts(size, sidebarWidth(size.width, {fraction: leadingFraction, min: minLeadingWidth, max: maxLeadingWidth}), rtl)
       : splitParts(size, axis, division, rtl);
   const split = axis !== null;
   const onePane = !split && arrangement === 'list-detail';
-  const trailingHidden = onePane && compact === 'leading';
-  const leadingHidden = onePane && compact === 'trailing';
+  const trailingHidden = outer.hidden || (onePane && compact === 'leading');
+  const leadingHidden = outer.hidden || (onePane && compact === 'trailing');
+  const leadingEdges = edgesInBox(leadingFrame, size);
+  const trailingEdges = edgesInBox(trailingFrame, size);
 
   return (
     <View ref={ref} testID={testID} style={[styles.fill, style]} onLayout={onLayout}>
-      <PaneProvider pane={{split, side: split ? 'leading' : 'only', x: origin.x + leadingFrame.x, y: origin.y + leadingFrame.y, width: leadingFrame.width, height: leadingFrame.height, hidden: leadingHidden}}>
-        <View testID={PANE_LEADING_TESTID} style={[styles.pane, leadingStyle, placedFrame(leadingFrame), leadingHidden && styles.hidden]}>
+      <PaneProvider pane={{split, side: split ? 'leading' : 'only', x: origin.x + leadingFrame.x, y: origin.y + leadingFrame.y, width: leadingFrame.width, height: leadingFrame.height, hidden: leadingHidden, edges: leadingEdges}}>
+        <View testID={PANE_LEADING_TESTID} style={[styles.pane, leadingStyle, placedFrame(leadingFrame), onePane && compact === 'trailing' && styles.hidden]}>
           {leading}
         </View>
       </PaneProvider>
-      <PaneProvider pane={{split, side: split ? 'trailing' : 'only', x: origin.x + trailingFrame.x, y: origin.y + trailingFrame.y, width: trailingFrame.width, height: trailingFrame.height, hidden: trailingHidden}}>
+      <PaneProvider pane={{split, side: split ? 'trailing' : 'only', x: origin.x + trailingFrame.x, y: origin.y + trailingFrame.y, width: trailingFrame.width, height: trailingFrame.height, hidden: trailingHidden, edges: trailingEdges}}>
         <View
           testID={PANE_TRAILING_TESTID}
-          style={[styles.pane, trailingStyle, placedFrame(trailingFrame), trailingHidden && styles.hidden]}
+          style={[styles.pane, trailingStyle, placedFrame(trailingFrame), onePane && compact === 'leading' && styles.hidden]}
           pointerEvents={split ? 'auto' : 'box-none'}>
           {trailing}
         </View>
