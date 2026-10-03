@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   tabLabel: {fontSize: Type.caption, fontWeight: '600'},
   sideTabs: {alignItems: 'center'},
   glyph: {fontSize: Type.title},
-  menu: {position: 'absolute', bottom: 0, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth, paddingVertical: Spacing.xs, zIndex: 2},
+  menu: {position: 'absolute', bottom: 0, width: Layout.menuWidth, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth, paddingVertical: Spacing.xs, zIndex: 2},
   menuLeading: {start: Layout.barWidth},
   menuTrailing: {end: Layout.barWidth},
   menuItem: {minHeight: Layout.tapTarget, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg},
