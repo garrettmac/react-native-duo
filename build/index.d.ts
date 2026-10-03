@@ -5,7 +5,7 @@ export type { BarInsets, ReservedRegionQuery } from './hooks';
 export { DuoPage, usePage } from './page';
 export type { BarPlacement, BarPosition, BarSlot, DuoPageProps, PageMode, PagePlacement, SideParts } from './page';
 export { PaneLayout, usePane, useSplitWindow } from './pane';
-export type { Pane, PaneArrangement, PaneLayoutProps, PaneSide } from './pane';
+export type { Pane, PaneArrangement, PaneEdges, PaneLayoutProps, PaneSide, PlacedPane } from './pane';
 export { DetailStack, useDetailStack } from './detail-stack';
 export type { DetailStackProps, DetailStackScreen, DetailStackValue } from './detail-stack';
 export { useEvenColumns } from './grid';

@@ -40,6 +40,19 @@ export interface DetailStackProps {
      * screens under the top one that their pane is hidden, so their bars stay out of the side strip; hide them yourself.
      */
     renderStack?: (screens: DetailStackScreen[], top: number) => ReactNode;
+    /**
+     * The screens above the first, bottom to top, when your own state keeps the stack (a reducer, a router). The stack
+     * then shows these, and `push`, `back` and `popToRoot` ask `onPush`, `onBack` and `onPopToRoot` instead of
+     * changing anything themselves. `onBack` is required with `screens` (a dev warning says so); leave out `onPush` or
+     * `onPopToRoot` only when no screen calls `push` or `popToRoot`. Pass `screens` for the stack's whole life.
+     */
+    screens?: DetailStackScreen[];
+    /** With `screens`: Back above the first screen. Pop the top one. */
+    onBack?: () => void;
+    /** With `screens`: a screen asked to push `element`. */
+    onPush?: (element: ReactNode, key?: string) => void;
+    /** With `screens`: a screen asked to go back to the first. */
+    onPopToRoot?: () => void;
     testID?: string;
 }
 export declare const DETAIL_STACK_TESTID = "duo-detail-stack";
@@ -47,4 +60,4 @@ export declare const DETAIL_STACK_TESTID = "duo-detail-stack";
 export declare function useDetailStack(): DetailStackValue;
 /** Whether a stack screen at `depth` shows Back: always below the first, and on the first only without the list beside it. */
 export declare function detailShowsBack(depth: number, besideList: boolean): boolean;
-export declare function DetailStack({ children, onExit, screenStyle, showBackOnRoot, renderStack, testID }: DetailStackProps): import("react").JSX.Element;
+export declare function DetailStack({ children, onExit, screenStyle, showBackOnRoot, renderStack, screens: controlled, onBack, onPush, onPopToRoot, testID, }: DetailStackProps): import("react").JSX.Element;

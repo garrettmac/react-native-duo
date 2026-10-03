@@ -6,6 +6,19 @@ import { type ReactNode } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
 import type { Rect, WindowSize } from './types';
 export type PaneSide = 'only' | 'leading' | 'trailing';
+/**
+ * The edges of its box a pane reaches: the `PaneLayout` or `Arrangement` it is in, or the window outside one. A
+ * layout's box is its own, not the window: inside a sheet or another pane, an edge of the box may not be the screen's
+ * edge. `left` and `right` are the sides a style names, so a right-to-left layout that swaps sides names the leading
+ * side `left`.
+ */
+export interface PaneEdges {
+    top: boolean;
+    bottom: boolean;
+    left: boolean;
+    right: boolean;
+}
+export declare const ALL_EDGES: PaneEdges;
 export interface Pane {
     split: boolean;
     side: PaneSide;
@@ -16,13 +29,21 @@ export interface Pane {
     height: number;
     /** Mounted to keep its state but not on screen: a split view's detail behind its list on a compact window. */
     hidden: boolean;
+    /** The edges of its `PaneLayout`, `Arrangement` or window it reaches, where that layout's own insets still apply. */
+    edges: PaneEdges;
 }
+/** A pane to provide; without `edges`, they are read from where it sits in the window. */
+export type PlacedPane = Omit<Pane, 'edges'> & {
+    edges?: PaneEdges;
+};
 export declare function PaneProvider({ pane, children }: {
-    pane: Pane;
+    pane: PlacedPane;
     children: ReactNode;
 }): import("react").JSX.Element;
 /** The pane this component is in; outside any pane, the app's whole window. */
 export declare function usePane(): Pane;
+/** The edges of a box of `size` that `frame` (physical points) reaches, named as a style names them. */
+export declare function edgesInBox(frame: Rect, size: WindowSize): PaneEdges;
 export declare const PANE_LAYOUT_TESTID = "duo-pane-layout";
 export declare const PANE_LEADING_TESTID = "duo-pane-leading";
 export declare const PANE_TRAILING_TESTID = "duo-pane-trailing";
@@ -44,6 +65,16 @@ export interface PaneLayoutProps {
     maxLeadingWidth?: number;
     /** `auto` (the default) follows the pose; `always` or `never` forces two panes or one. An active fold still divides. */
     split?: 'auto' | 'always' | 'never';
+    /**
+     * The narrowest box that splits without a fold, in points. A regular window alone is not enough: a page sheet or
+     * form sheet on an iPad is narrower than its window, and halves of it would each be narrower than a phone. Default 600.
+     */
+    minSplitWidth?: number;
+    /**
+     * For `sheet`: dock the sheet beside its map, left and right in halves, on a regular box (one at least
+     * `minSplitWidth` wide on a regular window), in portrait too, instead of over it. Apple layers it; off by default.
+     */
+    dock?: boolean;
     /** The view the leading pane sits in. */
     leadingStyle?: StyleProp<ViewStyle>;
     /** The view the trailing pane sits in. */
@@ -64,12 +95,13 @@ export declare function sidebarWidth(width: number, { fraction, min, max }?: {
  * Two layers or two contents sharing a window. Leading is where you are, trailing is what you picked.
  * - `sheet`: a map with a sheet over it, Apple's overlay arrangement: layered in every pose but an active fold, which
  *   puts the map on one side and the sheet on the other. Size the sheet to `usePane()`; on a regular width keep it a
- *   card at the bottom center rather than the full width.
- * - `list-detail`: a list and the row it opened. One pane on a compact window (`compact` says which), both on a regular one.
+ *   card at the bottom center rather than the full width. `dock` puts it beside the map on a regular box instead.
+ * - `list-detail`: a list and the row it opened. One pane on a compact window or a box narrower than `minSplitWidth`
+ *   (`compact` says which), both on a regular one.
  * - `side-by-side`: two contents at once. Side by side when wider than tall, stacked when taller than wide.
  * An active fold always divides the two and nothing straddles it. Both stay mounted in every pose, so folding keeps
- * their state; each child reads its own part through `usePane()`.
+ * their state; each child reads its own part through `usePane()`, hidden whenever the pane around the layout is.
  */
-export declare function PaneLayout({ leading, trailing, arrangement, compact, leadingFraction, minLeadingWidth, maxLeadingWidth, split: forced, leadingStyle, trailingStyle, style, testID, }: PaneLayoutProps): import("react").JSX.Element;
+export declare function PaneLayout({ leading, trailing, arrangement, compact, leadingFraction, minLeadingWidth, maxLeadingWidth, split: forced, minSplitWidth, dock, leadingStyle, trailingStyle, style, testID, }: PaneLayoutProps): import("react").JSX.Element;
 /** Whether two contents have room to share this pane: a regular width, or an active fold crossing it. */
 export declare function useSplitWindow(): boolean;

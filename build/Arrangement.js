@@ -21,9 +21,9 @@ const BOTH_AXES = ['horizontal', 'vertical'];
 function asList(axes) {
     return typeof axes === 'string' ? [axes] : axes;
 }
-function paneOf({ frame, isHidden, splitAxis }, side, origin) {
+function paneOf({ frame, isHidden, splitAxis }, side, origin, size) {
     const split = splitAxis !== null;
-    return { split, side: split ? side : 'only', x: origin.x + frame.x, y: origin.y + frame.y, width: frame.width, height: frame.height, hidden: isHidden };
+    return { split, side: split ? side : 'only', x: origin.x + frame.x, y: origin.y + frame.y, width: frame.width, height: frame.height, hidden: isHidden, edges: (0, pane_1.edgesInBox)(frame, size) };
 }
 function placedStyle({ frame, isHidden, zIndex }) {
     return { ...(0, measure_1.placedFrame)(frame), zIndex, display: isHidden ? 'none' : 'flex' };
@@ -34,7 +34,7 @@ function Arrangement({ kind, axes = BOTH_AXES, collapsed = false, primary, secon
     const size = box ?? state.window;
     const axisList = asList(axes);
     const layout = (0, react_1.useMemo)(() => (0, arrangement_layout_1.arrangementLayout)({ kind, axes: axisList, size, origin, regions: state.regions, rtl: react_native_1.I18nManager.isRTL, collapsed }), [kind, axisList, collapsed, size, origin, state.regions]);
-    return ((0, jsx_runtime_1.jsxs)(react_native_1.View, { ref: ref, testID: testID, style: [styles.container, style], onLayout: onLayout, children: [(0, jsx_runtime_1.jsx)(pane_1.PaneProvider, { pane: paneOf(layout.secondary, kind === 'overlay' ? 'leading' : 'trailing', origin), children: (0, jsx_runtime_1.jsx)(react_native_1.View, { testID: exports.ARRANGEMENT_SECONDARY_TESTID, style: placedStyle(layout.secondary), children: secondary }) }), (0, jsx_runtime_1.jsx)(pane_1.PaneProvider, { pane: paneOf(layout.primary, kind === 'overlay' ? 'trailing' : 'leading', origin), children: (0, jsx_runtime_1.jsx)(react_native_1.View, { testID: exports.ARRANGEMENT_PRIMARY_TESTID, style: placedStyle(layout.primary), children: primary }) })] }));
+    return ((0, jsx_runtime_1.jsxs)(react_native_1.View, { ref: ref, testID: testID, style: [styles.container, style], onLayout: onLayout, children: [(0, jsx_runtime_1.jsx)(pane_1.PaneProvider, { pane: paneOf(layout.secondary, kind === 'overlay' ? 'leading' : 'trailing', origin, size), children: (0, jsx_runtime_1.jsx)(react_native_1.View, { testID: exports.ARRANGEMENT_SECONDARY_TESTID, style: placedStyle(layout.secondary), children: secondary }) }), (0, jsx_runtime_1.jsx)(pane_1.PaneProvider, { pane: paneOf(layout.primary, kind === 'overlay' ? 'trailing' : 'leading', origin, size), children: (0, jsx_runtime_1.jsx)(react_native_1.View, { testID: exports.ARRANGEMENT_PRIMARY_TESTID, style: placedStyle(layout.primary), children: primary }) })] }));
 }
 const styles = react_native_1.StyleSheet.create({ container: { flex: 1 } });
 //# sourceMappingURL=Arrangement.js.map

@@ -9,8 +9,8 @@ import {I18nManager, StyleSheet, View, type StyleProp, type ViewStyle} from 'rea
 import {arrangementLayout, type ViewState} from './arrangement-layout';
 import {useDuoContext} from './context';
 import {placedFrame, useArrangementBox} from './measure';
-import {PaneProvider, type Pane, type PaneSide} from './pane';
-import type {Axis, ArrangementKind} from './types';
+import {edgesInBox, PaneProvider, type Pane, type PaneSide} from './pane';
+import type {Axis, ArrangementKind, WindowSize} from './types';
 
 export const ARRANGEMENT_TESTID = 'duo-arrangement';
 export const ARRANGEMENT_PRIMARY_TESTID = 'duo-arrangement-primary';
@@ -33,9 +33,9 @@ function asList(axes: Axis | readonly Axis[]): readonly Axis[] {
   return typeof axes === 'string' ? [axes] : axes;
 }
 
-function paneOf({frame, isHidden, splitAxis}: ViewState, side: PaneSide, origin: {x: number; y: number}): Pane {
+function paneOf({frame, isHidden, splitAxis}: ViewState, side: PaneSide, origin: {x: number; y: number}, size: WindowSize): Pane {
   const split = splitAxis !== null;
-  return {split, side: split ? side : 'only', x: origin.x + frame.x, y: origin.y + frame.y, width: frame.width, height: frame.height, hidden: isHidden};
+  return {split, side: split ? side : 'only', x: origin.x + frame.x, y: origin.y + frame.y, width: frame.width, height: frame.height, hidden: isHidden, edges: edgesInBox(frame, size)};
 }
 
 function placedStyle({frame, isHidden, zIndex}: ViewState): ViewStyle {
@@ -55,12 +55,12 @@ export function Arrangement({kind, axes = BOTH_AXES, collapsed = false, primary,
 
   return (
     <View ref={ref} testID={testID} style={[styles.container, style]} onLayout={onLayout}>
-      <PaneProvider pane={paneOf(layout.secondary, kind === 'overlay' ? 'leading' : 'trailing', origin)}>
+      <PaneProvider pane={paneOf(layout.secondary, kind === 'overlay' ? 'leading' : 'trailing', origin, size)}>
         <View testID={ARRANGEMENT_SECONDARY_TESTID} style={placedStyle(layout.secondary)}>
           {secondary}
         </View>
       </PaneProvider>
-      <PaneProvider pane={paneOf(layout.primary, kind === 'overlay' ? 'trailing' : 'leading', origin)}>
+      <PaneProvider pane={paneOf(layout.primary, kind === 'overlay' ? 'trailing' : 'leading', origin, size)}>
         <View testID={ARRANGEMENT_PRIMARY_TESTID} style={placedStyle(layout.primary)}>
           {primary}
         </View>

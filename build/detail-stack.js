@@ -26,24 +26,44 @@ function detailShowsBack(depth, besideList) {
     return depth > 1 || !besideList;
 }
 let nextKey = 0;
-function DetailStack({ children, onExit, screenStyle, showBackOnRoot, renderStack, testID = exports.DETAIL_STACK_TESTID }) {
-    const [pushed, setPushed] = (0, react_1.useState)([]);
+function DetailStack({ children, onExit, screenStyle, showBackOnRoot, renderStack, screens: controlled, onBack, onPush, onPopToRoot, testID = exports.DETAIL_STACK_TESTID, }) {
+    const [own, setOwn] = (0, react_1.useState)([]);
+    const noBack = controlled !== undefined && onBack === undefined;
+    (0, react_1.useEffect)(() => {
+        if (__DEV__ && noBack)
+            console.warn('react-native-duo: a DetailStack given `screens` has no `onBack`, so Back above the first screen does nothing');
+    }, [noBack]);
+    const pushed = controlled ?? own;
+    const isControlled = controlled !== undefined;
     const pane = (0, pane_1.usePane)();
     const besideList = pane.split;
-    const push = (0, react_1.useCallback)((element, key) => setPushed(previous => [...previous, { key: key ?? `screen-${nextKey++}`, element }]), []);
-    const back = (0, react_1.useCallback)(() => {
-        if (pushed.length > 0)
-            setPushed(previous => previous.slice(0, -1));
+    const push = (0, react_1.useCallback)((element, key) => {
+        if (isControlled)
+            onPush?.(element, key);
         else
+            setOwn(previous => [...previous, { key: key ?? `screen-${nextKey++}`, element }]);
+    }, [isControlled, onPush]);
+    const back = (0, react_1.useCallback)(() => {
+        if (pushed.length === 0)
             onExit?.();
-    }, [pushed.length, onExit]);
-    const popToRoot = (0, react_1.useCallback)(() => setPushed([]), []);
+        else if (isControlled)
+            onBack?.();
+        else
+            setOwn(previous => previous.slice(0, -1));
+    }, [pushed.length, isControlled, onBack, onExit]);
+    const popToRoot = (0, react_1.useCallback)(() => {
+        if (isControlled)
+            onPopToRoot?.();
+        else
+            setOwn([]);
+    }, [isControlled, onPopToRoot]);
     const depth = pushed.length + 1;
     const showBack = depth === 1 && showBackOnRoot !== undefined ? showBackOnRoot : detailShowsBack(depth, besideList);
     const value = (0, react_1.useMemo)(() => ({ depth, push, back, popToRoot, showBack, besideList }), [depth, push, back, popToRoot, showBack, besideList]);
+    const covered = (0, react_1.useMemo)(() => ({ ...pane, hidden: true }), [pane]);
     const screens = [{ key: 'root', element: children }, ...pushed].map((screen, index, all) => ({
         key: screen.key,
-        element: (0, jsx_runtime_1.jsx)(pane_1.PaneProvider, { pane: index < all.length - 1 ? { ...pane, hidden: true } : pane, children: screen.element }),
+        element: (0, jsx_runtime_1.jsx)(pane_1.PaneProvider, { pane: index < all.length - 1 ? covered : pane, children: screen.element }),
     }));
     const top = screens.length - 1;
     return ((0, jsx_runtime_1.jsx)(DetailStackContext.Provider, { value: value, children: renderStack ? (renderStack(screens, top)) : ((0, jsx_runtime_1.jsx)(react_native_1.View, { testID: testID, style: styles.fill, children: screens.map((screen, index) => ((0, jsx_runtime_1.jsx)(react_native_1.View, { style: [styles.fill, screenStyle, index < top && styles.hidden], children: screen.element }, screen.key))) })) }));

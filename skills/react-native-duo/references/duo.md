@@ -40,7 +40,9 @@ A summary of Apple's guidance, with the source of each line, is in
    - two contents at once (a day and its map): `<PaneLayout arrangement="side-by-side" leading={<Day/>} trailing={<DayMap/>} />`
 
    Leading is where you are, trailing is what you picked; detail never goes leading. Both panes stay mounted in every
-   pose, so do not key them on the size class and do not unmount one to "hide" it. Apple's exact
+   pose, so do not key them on the size class and do not unmount one to "hide" it. A box narrower than
+   `minSplitWidth` (a page sheet on an iPad) stays one pane on a regular window; inset from `usePane().edges`, the
+   edges of the layout a pane reaches, never from a second measurement of the box. Apple's exact
    `UIArrangementViewController` (`primary` and `secondary`, `axes`, `collapsed`) is `Arrangement` from
    `@garrettmacmac/react-native-duo/layout`, for the rare screen `PaneLayout` does not fit.
 5. **Navigation wraps the container, never sits inside it.** Tabs and stacks go around `PaneLayout` or
@@ -66,7 +68,8 @@ A summary of Apple's guidance, with the source of each line, is in
    - Bar items: `<DuoBar items renderItem>` lays them out by the rules below; give a navigation bar and a toolbar the
      same `items` with `part="top"` and `part="bottom"`, and a `renderOverflow` for the More menu.
    - Deeper in a list's detail: wrap the trailing pane in `<DetailStack key={selected} onExit>` and `push` from
-     `useDetailStack()`; draw Back when its `showBack` is true. Every screen in the stack stays mounted.
+     `useDetailStack()`; draw Back when its `showBack` is true. Every screen in the stack stays mounted. When your
+     own state keeps the stack, pass it as `screens` with `onBack` rather than mirroring it.
 10. **Custom bars follow the system's edge.** If the app draws its own header, toolbar or tab bar without `DuoPage`,
    read `useVerticalBarEdge()`. When it is `'leading'` or `'trailing'`, stand the bar vertical on that edge and lay
    items out with `useVerticalBar(items, {itemLength, insetTop})`:

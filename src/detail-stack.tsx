@@ -4,7 +4,7 @@
  * screen it leaves the detail (`onExit`), which on a phone or the closed iPhone Duo returns to the list. Every screen
  * stays mounted under the one on top, so folding and unfolding keep scroll and typed text.
  */
-import {createContext, useCallback, useContext, useMemo, useState, type ReactNode} from 'react';
+import {createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode} from 'react';
 import {StyleSheet, View, type StyleProp, type ViewStyle} from 'react-native';
 
 import {PaneProvider, usePane} from './pane';
@@ -45,6 +45,19 @@ export interface DetailStackProps {
    * screens under the top one that their pane is hidden, so their bars stay out of the side strip; hide them yourself.
    */
   renderStack?: (screens: DetailStackScreen[], top: number) => ReactNode;
+  /**
+   * The screens above the first, bottom to top, when your own state keeps the stack (a reducer, a router). The stack
+   * then shows these, and `push`, `back` and `popToRoot` ask `onPush`, `onBack` and `onPopToRoot` instead of
+   * changing anything themselves. `onBack` is required with `screens` (a dev warning says so); leave out `onPush` or
+   * `onPopToRoot` only when no screen calls `push` or `popToRoot`. Pass `screens` for the stack's whole life.
+   */
+  screens?: DetailStackScreen[];
+  /** With `screens`: Back above the first screen. Pop the top one. */
+  onBack?: () => void;
+  /** With `screens`: a screen asked to push `element`. */
+  onPush?: (element: ReactNode, key?: string) => void;
+  /** With `screens`: a screen asked to go back to the first. */
+  onPopToRoot?: () => void;
   testID?: string;
 }
 
@@ -66,25 +79,53 @@ export function detailShowsBack(depth: number, besideList: boolean): boolean {
 
 let nextKey = 0;
 
-export function DetailStack({children, onExit, screenStyle, showBackOnRoot, renderStack, testID = DETAIL_STACK_TESTID}: DetailStackProps) {
-  const [pushed, setPushed] = useState<DetailStackScreen[]>([]);
+export function DetailStack({
+  children,
+  onExit,
+  screenStyle,
+  showBackOnRoot,
+  renderStack,
+  screens: controlled,
+  onBack,
+  onPush,
+  onPopToRoot,
+  testID = DETAIL_STACK_TESTID,
+}: DetailStackProps) {
+  const [own, setOwn] = useState<DetailStackScreen[]>([]);
+  const noBack = controlled !== undefined && onBack === undefined;
+  useEffect(() => {
+    if (__DEV__ && noBack) console.warn('react-native-duo: a DetailStack given `screens` has no `onBack`, so Back above the first screen does nothing');
+  }, [noBack]);
+  const pushed = controlled ?? own;
+  const isControlled = controlled !== undefined;
   const pane = usePane();
   const besideList = pane.split;
 
-  const push = useCallback((element: ReactNode, key?: string) => setPushed(previous => [...previous, {key: key ?? `screen-${nextKey++}`, element}]), []);
+  const push = useCallback(
+    (element: ReactNode, key?: string) => {
+      if (isControlled) onPush?.(element, key);
+      else setOwn(previous => [...previous, {key: key ?? `screen-${nextKey++}`, element}]);
+    },
+    [isControlled, onPush],
+  );
   const back = useCallback(() => {
-    if (pushed.length > 0) setPushed(previous => previous.slice(0, -1));
-    else onExit?.();
-  }, [pushed.length, onExit]);
-  const popToRoot = useCallback(() => setPushed([]), []);
+    if (pushed.length === 0) onExit?.();
+    else if (isControlled) onBack?.();
+    else setOwn(previous => previous.slice(0, -1));
+  }, [pushed.length, isControlled, onBack, onExit]);
+  const popToRoot = useCallback(() => {
+    if (isControlled) onPopToRoot?.();
+    else setOwn([]);
+  }, [isControlled, onPopToRoot]);
 
   const depth = pushed.length + 1;
   const showBack = depth === 1 && showBackOnRoot !== undefined ? showBackOnRoot : detailShowsBack(depth, besideList);
   const value = useMemo<DetailStackValue>(() => ({depth, push, back, popToRoot, showBack, besideList}), [depth, push, back, popToRoot, showBack, besideList]);
 
+  const covered = useMemo(() => ({...pane, hidden: true}), [pane]);
   const screens: DetailStackScreen[] = [{key: 'root', element: children}, ...pushed].map((screen, index, all) => ({
     key: screen.key,
-    element: <PaneProvider pane={index < all.length - 1 ? {...pane, hidden: true} : pane}>{screen.element}</PaneProvider>,
+    element: <PaneProvider pane={index < all.length - 1 ? covered : pane}>{screen.element}</PaneProvider>,
   }));
   const top = screens.length - 1;
 
