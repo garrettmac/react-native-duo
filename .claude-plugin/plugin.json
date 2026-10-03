@@ -1,0 +1,20 @@
+{
+  "name": "react-native-duo",
+  "version": "0.1.0-beta.0",
+  "description": "iPhone Duo, foldable and iPad layout rules for React Native and Expo apps using @garrettmacmac/react-native-duo, after Apple's Designing for iPhone Duo guidelines.",
+  "author": {
+    "name": "garrettmacmac",
+    "email": "garrett@garrettmac.io"
+  },
+  "homepage": "https://github.com/garrettmac/react-native-duo",
+  "repository": "https://github.com/garrettmac/react-native-duo",
+  "license": "MIT",
+  "keywords": [
+    "react-native",
+    "expo",
+    "iphone-duo",
+    "foldable",
+    "ipad",
+    "layout"
+  ]
+}

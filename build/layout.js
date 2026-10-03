@@ -1,0 +1,62 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sizeClassFromWindow = exports.REGULAR_WIDTH_MIN_DP = exports.REGULAR_HEIGHT_MIN_DP = exports.sheetPlacement = exports.sheetControlsStandVertical = exports.rowSidePadding = exports.columnInsetTop = exports.verticalBarLayout = exports.maxInsets = exports.cameraClearance = exports.NO_CLEARANCE = exports.avoidanceOffset = exports.activeFold = exports.evenColumnCount = exports.DUO_OVERLAY_TESTID = exports.DUO_BAR_TESTID = exports.detailShowsBack = exports.DETAIL_STACK_TESTID = exports.usePaneBarEdge = exports.touchesEdge = exports.pageMode = exports.DUO_PAGE_TESTID = exports.DUO_PAGE_STRIP_TESTID = exports.DUO_PAGE_CONTENT_TESTID = exports.sidebarWidth = exports.sidebarParts = exports.PaneProvider = exports.PANE_TRAILING_TESTID = exports.PANE_LEADING_TESTID = exports.PANE_LAYOUT_TESTID = exports.useArrangementBox = exports.placedFrame = exports.splitParts = exports.arrangementLayout = exports.activeDivision = exports.ARRANGEMENT_TESTID = exports.ARRANGEMENT_SECONDARY_TESTID = exports.ARRANGEMENT_PRIMARY_TESTID = exports.Arrangement = void 0;
+/**
+ * The building blocks under the main API: Apple's arrangement view as a component, the pure layout functions every
+ * hook is made of, and the test ids. For a layout of your own; most apps need only the package root.
+ */
+var Arrangement_1 = require("./Arrangement");
+Object.defineProperty(exports, "Arrangement", { enumerable: true, get: function () { return Arrangement_1.Arrangement; } });
+Object.defineProperty(exports, "ARRANGEMENT_PRIMARY_TESTID", { enumerable: true, get: function () { return Arrangement_1.ARRANGEMENT_PRIMARY_TESTID; } });
+Object.defineProperty(exports, "ARRANGEMENT_SECONDARY_TESTID", { enumerable: true, get: function () { return Arrangement_1.ARRANGEMENT_SECONDARY_TESTID; } });
+Object.defineProperty(exports, "ARRANGEMENT_TESTID", { enumerable: true, get: function () { return Arrangement_1.ARRANGEMENT_TESTID; } });
+var arrangement_layout_1 = require("./arrangement-layout");
+Object.defineProperty(exports, "activeDivision", { enumerable: true, get: function () { return arrangement_layout_1.activeDivision; } });
+Object.defineProperty(exports, "arrangementLayout", { enumerable: true, get: function () { return arrangement_layout_1.arrangementLayout; } });
+Object.defineProperty(exports, "splitParts", { enumerable: true, get: function () { return arrangement_layout_1.splitParts; } });
+var measure_1 = require("./measure");
+Object.defineProperty(exports, "placedFrame", { enumerable: true, get: function () { return measure_1.placedFrame; } });
+Object.defineProperty(exports, "useArrangementBox", { enumerable: true, get: function () { return measure_1.useArrangementBox; } });
+var pane_1 = require("./pane");
+Object.defineProperty(exports, "PANE_LAYOUT_TESTID", { enumerable: true, get: function () { return pane_1.PANE_LAYOUT_TESTID; } });
+Object.defineProperty(exports, "PANE_LEADING_TESTID", { enumerable: true, get: function () { return pane_1.PANE_LEADING_TESTID; } });
+Object.defineProperty(exports, "PANE_TRAILING_TESTID", { enumerable: true, get: function () { return pane_1.PANE_TRAILING_TESTID; } });
+Object.defineProperty(exports, "PaneProvider", { enumerable: true, get: function () { return pane_1.PaneProvider; } });
+Object.defineProperty(exports, "sidebarParts", { enumerable: true, get: function () { return pane_1.sidebarParts; } });
+Object.defineProperty(exports, "sidebarWidth", { enumerable: true, get: function () { return pane_1.sidebarWidth; } });
+var page_1 = require("./page");
+Object.defineProperty(exports, "DUO_PAGE_CONTENT_TESTID", { enumerable: true, get: function () { return page_1.DUO_PAGE_CONTENT_TESTID; } });
+Object.defineProperty(exports, "DUO_PAGE_STRIP_TESTID", { enumerable: true, get: function () { return page_1.DUO_PAGE_STRIP_TESTID; } });
+Object.defineProperty(exports, "DUO_PAGE_TESTID", { enumerable: true, get: function () { return page_1.DUO_PAGE_TESTID; } });
+Object.defineProperty(exports, "pageMode", { enumerable: true, get: function () { return page_1.pageMode; } });
+Object.defineProperty(exports, "touchesEdge", { enumerable: true, get: function () { return page_1.touchesEdge; } });
+var page_context_1 = require("./page-context");
+Object.defineProperty(exports, "usePaneBarEdge", { enumerable: true, get: function () { return page_context_1.usePaneBarEdge; } });
+var detail_stack_1 = require("./detail-stack");
+Object.defineProperty(exports, "DETAIL_STACK_TESTID", { enumerable: true, get: function () { return detail_stack_1.DETAIL_STACK_TESTID; } });
+Object.defineProperty(exports, "detailShowsBack", { enumerable: true, get: function () { return detail_stack_1.detailShowsBack; } });
+var duo_bar_1 = require("./duo-bar");
+Object.defineProperty(exports, "DUO_BAR_TESTID", { enumerable: true, get: function () { return duo_bar_1.DUO_BAR_TESTID; } });
+var overlay_1 = require("./overlay");
+Object.defineProperty(exports, "DUO_OVERLAY_TESTID", { enumerable: true, get: function () { return overlay_1.DUO_OVERLAY_TESTID; } });
+var grid_1 = require("./grid");
+Object.defineProperty(exports, "evenColumnCount", { enumerable: true, get: function () { return grid_1.evenColumnCount; } });
+var fold_1 = require("./fold");
+Object.defineProperty(exports, "activeFold", { enumerable: true, get: function () { return fold_1.activeFold; } });
+Object.defineProperty(exports, "avoidanceOffset", { enumerable: true, get: function () { return fold_1.avoidanceOffset; } });
+var clearance_1 = require("./clearance");
+Object.defineProperty(exports, "NO_CLEARANCE", { enumerable: true, get: function () { return clearance_1.NO_CLEARANCE; } });
+Object.defineProperty(exports, "cameraClearance", { enumerable: true, get: function () { return clearance_1.cameraClearance; } });
+Object.defineProperty(exports, "maxInsets", { enumerable: true, get: function () { return clearance_1.maxInsets; } });
+var bar_1 = require("./bar");
+Object.defineProperty(exports, "verticalBarLayout", { enumerable: true, get: function () { return bar_1.verticalBarLayout; } });
+var sheet_1 = require("./sheet");
+Object.defineProperty(exports, "columnInsetTop", { enumerable: true, get: function () { return sheet_1.columnInsetTop; } });
+Object.defineProperty(exports, "rowSidePadding", { enumerable: true, get: function () { return sheet_1.rowSidePadding; } });
+Object.defineProperty(exports, "sheetControlsStandVertical", { enumerable: true, get: function () { return sheet_1.sheetControlsStandVertical; } });
+Object.defineProperty(exports, "sheetPlacement", { enumerable: true, get: function () { return sheet_1.sheetPlacement; } });
+var sizes_1 = require("./sizes");
+Object.defineProperty(exports, "REGULAR_HEIGHT_MIN_DP", { enumerable: true, get: function () { return sizes_1.REGULAR_HEIGHT_MIN_DP; } });
+Object.defineProperty(exports, "REGULAR_WIDTH_MIN_DP", { enumerable: true, get: function () { return sizes_1.REGULAR_WIDTH_MIN_DP; } });
+Object.defineProperty(exports, "sizeClassFromWindow", { enumerable: true, get: function () { return sizes_1.sizeClassFromWindow; } });
+//# sourceMappingURL=layout.js.map

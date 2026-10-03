@@ -1,0 +1,113 @@
+{
+  "name": "@garrettmacmac/react-native-duo",
+  "version": "0.1.0-beta.0",
+  "description": "iPhone Duo and foldables for React Native and Expo: size classes, the vertical bar edge, reserved regions (the fold and the cameras), arrangement views and pane layouts, with agent rules that teach coding agents Apple's Duo guidelines.",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    },
+    "./layout": {
+      "types": "./build/layout.d.ts",
+      "default": "./build/layout.js"
+    },
+    "./testing": {
+      "types": "./build/testing.d.ts",
+      "default": "./build/testing.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "layout": [
+        "build/layout.d.ts"
+      ],
+      "testing": [
+        "build/testing.d.ts"
+      ]
+    }
+  },
+  "sideEffects": false,
+  "bin": {
+    "react-native-duo": "bin/react-native-duo.js"
+  },
+  "files": [
+    "build",
+    "src",
+    "!src/__tests__",
+    "ios",
+    "android",
+    "bin",
+    "rules",
+    "skills",
+    ".claude-plugin",
+    "expo-module.config.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "react-native",
+    "expo",
+    "expo-module",
+    "ios",
+    "android",
+    "iphone-duo",
+    "foldable",
+    "fold",
+    "ipad",
+    "reserved-regions",
+    "size-class",
+    "split-view",
+    "arrangement-view",
+    "agents",
+    "claude-code",
+    "agents-md"
+  ],
+  "license": "MIT",
+  "author": "garrettmacmac <garrett@garrettmac.io> (https://www.npmjs.com/~garrettmacmac)",
+  "homepage": "https://github.com/garrettmac/react-native-duo#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/garrettmac/react-native-duo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/garrettmac/react-native-duo/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "expo": ">=53.0.0",
+    "react": ">=19.0.0",
+    "react-native": ">=0.79.0"
+  },
+  "devDependencies": {
+    "@react-native/jest-preset": "0.86.3",
+    "@testing-library/react-native": "^14.0.1",
+    "@types/jest": "29.5.14",
+    "@types/react": "~19.2.2",
+    "expo": "^57.0.23",
+    "jest": "^29.7.0",
+    "jest-expo": "~57.0.5",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-test-renderer": "19.2.3",
+    "test-renderer": "^1.2.0",
+    "typescript": "~6.0.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation))"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/__tests__/helpers/"
+    ]
+  }
+}
