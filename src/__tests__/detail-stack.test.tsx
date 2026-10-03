@@ -171,3 +171,30 @@ describe('a DetailStack your own state keeps', () => {
     expect([hidden('root'), hidden('a'), hidden('b')]).toEqual(['true', 'true', 'false']);
   });
 });
+
+describe('a DetailStack given screens without a handler', () => {
+  it('warns once when Back has nowhere to go, and stays quiet with onBack', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const tree = (screens: {key: string; element: ReactNode}[]) => (
+      <DuoTestProvider pose="closed">
+        <DetailStack screens={screens}>
+          <Screen name="message" />
+        </DetailStack>
+      </DuoTestProvider>
+    );
+    await render(tree([]));
+    await screen.rerender(tree([{key: 'a', element: <Text>a</Text>}]));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]![0]).toContain('`onBack`');
+    warn.mockClear();
+    await render(
+      <DuoTestProvider pose="closed">
+        <DetailStack screens={[]} onBack={() => {}}>
+          <Screen name="message" />
+        </DetailStack>
+      </DuoTestProvider>,
+    );
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+});

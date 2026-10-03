@@ -4,7 +4,7 @@
  * screen it leaves the detail (`onExit`), which on a phone or the closed iPhone Duo returns to the list. Every screen
  * stays mounted under the one on top, so folding and unfolding keep scroll and typed text.
  */
-import {createContext, useCallback, useContext, useMemo, useState, type ReactNode} from 'react';
+import {createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode} from 'react';
 import {StyleSheet, View, type StyleProp, type ViewStyle} from 'react-native';
 
 import {PaneProvider, usePane} from './pane';
@@ -48,7 +48,8 @@ export interface DetailStackProps {
   /**
    * The screens above the first, bottom to top, when your own state keeps the stack (a reducer, a router). The stack
    * then shows these, and `push`, `back` and `popToRoot` ask `onPush`, `onBack` and `onPopToRoot` instead of
-   * changing anything themselves; one you leave out does nothing. Pass `screens` for the stack's whole life.
+   * changing anything themselves. `onBack` is required with `screens` (a dev warning says so); leave out `onPush` or
+   * `onPopToRoot` only when no screen calls `push` or `popToRoot`. Pass `screens` for the stack's whole life.
    */
   screens?: DetailStackScreen[];
   /** With `screens`: Back above the first screen. Pop the top one. */
@@ -78,6 +79,7 @@ export function detailShowsBack(depth: number, besideList: boolean): boolean {
 
 let nextKey = 0;
 
+
 export function DetailStack({
   children,
   onExit,
@@ -91,9 +93,10 @@ export function DetailStack({
   testID = DETAIL_STACK_TESTID,
 }: DetailStackProps) {
   const [own, setOwn] = useState<DetailStackScreen[]>([]);
-  if (__DEV__ && controlled !== undefined && onBack === undefined) {
-    console.warn('react-native-duo: a DetailStack given `screens` needs `onBack`, or Back above the first screen does nothing');
-  }
+  const noBack = controlled !== undefined && onBack === undefined;
+  useEffect(() => {
+    if (__DEV__ && noBack) console.warn('react-native-duo: a DetailStack given `screens` has no `onBack`, so Back above the first screen does nothing');
+  }, [noBack]);
   const pushed = controlled ?? own;
   const isControlled = controlled !== undefined;
   const pane = usePane();
