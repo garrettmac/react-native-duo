@@ -1,5 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {Fragment} from 'react';
+import {Fragment, useState, type ReactNode} from 'react';
 import {Pressable, Text} from 'react-native';
 
 import {DetailStack, detailShowsBack, useDetailStack} from '../detail-stack';
@@ -122,5 +122,79 @@ describe('DetailStack with DuoPage', () => {
     const strip = screen.getByTestId(DUO_PAGE_STRIP_TESTID);
     expect(strip).toContainElement(screen.getByTestId('bar-message+'));
     expect(strip).not.toContainElement(screen.getByTestId('bar-message'));
+  });
+});
+
+describe('a DetailStack your own state keeps', () => {
+  function Owned({onExit}: {onExit: () => void}) {
+    const [screens, setScreens] = useState<{key: string; element: ReactNode}[]>([]);
+    return (
+      <DetailStack
+        screens={screens}
+        onExit={onExit}
+        onPush={(element, key) => setScreens(previous => [...previous, {key: key ?? `owned-${previous.length}`, element}])}
+        onBack={() => setScreens(previous => previous.slice(0, -1))}
+        onPopToRoot={() => setScreens([])}>
+        <Screen name="message" />
+      </DetailStack>
+    );
+  }
+
+  it('shows your screens, asks you to push and pop, and leaves on Back at the first', async () => {
+    const onExit = jest.fn();
+    await render(
+      <DuoTestProvider pose="closed">
+        <Owned onExit={onExit} />
+      </DuoTestProvider>,
+    );
+    await act(() => fireEvent.press(screen.getByTestId('push-message')));
+    expect(label('message+')).toBe('message+ 2 true');
+    await act(() => fireEvent.press(screen.getByTestId('back-message+')));
+    expect(screen.queryByTestId('screen-message+', {includeHiddenElements: true})).toBeNull();
+    await act(() => fireEvent.press(screen.getByTestId('back-message')));
+    expect(onExit).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks every screen under the top of your stack as a hidden pane', async () => {
+    const {usePane} = require('../pane');
+    function Report({name}: {name: string}) {
+      return <Text testID={`hidden-${name}`}>{String(usePane().hidden)}</Text>;
+    }
+    await render(
+      <DuoTestProvider pose="closed">
+        <DetailStack screens={[{key: 'a', element: <Report name="a" />}, {key: 'b', element: <Report name="b" />}]} renderStack={all => all.map(entry => <Fragment key={entry.key}>{entry.element}</Fragment>)}>
+          <Report name="root" />
+        </DetailStack>
+      </DuoTestProvider>,
+    );
+    const hidden = (name: string) => screen.getByTestId(`hidden-${name}`).props.children;
+    expect([hidden('root'), hidden('a'), hidden('b')]).toEqual(['true', 'true', 'false']);
+  });
+});
+
+describe('a DetailStack given screens without a handler', () => {
+  it('warns once when Back has nowhere to go, and stays quiet with onBack', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const tree = (screens: {key: string; element: ReactNode}[]) => (
+      <DuoTestProvider pose="closed">
+        <DetailStack screens={screens}>
+          <Screen name="message" />
+        </DetailStack>
+      </DuoTestProvider>
+    );
+    await render(tree([]));
+    await screen.rerender(tree([{key: 'a', element: <Text>a</Text>}]));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]![0]).toContain('`onBack`');
+    warn.mockClear();
+    await render(
+      <DuoTestProvider pose="closed">
+        <DetailStack screens={[]} onBack={() => {}}>
+          <Screen name="message" />
+        </DetailStack>
+      </DuoTestProvider>,
+    );
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 });

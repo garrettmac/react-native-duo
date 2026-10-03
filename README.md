@@ -163,7 +163,10 @@ partly folded, the fold divides them in halves.
 | --- | --- | --- | --- |
 | <img src="https://raw.githubusercontent.com/garrettmac/react-native-duo/main/docs/cases/mail-phone.png" width="160"> | <img src="https://raw.githubusercontent.com/garrettmac/react-native-duo/main/docs/cases/mail-closed.png" width="190"> | <img src="https://raw.githubusercontent.com/garrettmac/react-native-duo/main/docs/cases/mail-openLandscape.png" width="330"> | <img src="https://raw.githubusercontent.com/garrettmac/react-native-duo/main/docs/cases/mail-partlyFolded-m2.png" width="330"> |
 
-`split="always" | "never"` forces two panes or one; an active fold still divides.
+`split="always" | "never"` forces two panes or one; an active fold still divides. A regular window alone does not
+split a box narrower than `minSplitWidth` (600 points by default): a page sheet or form sheet on an iPad stays one
+pane, since halves of it would each be narrower than a phone. Each pane's `usePane().edges` names the edges of the
+layout it reaches, for the safe area and a screen's own insets; a `PaneLayout` in a hidden pane hides both of its panes.
 
 ### 5. Going deeper in the detail: `DetailStack`
 
@@ -200,6 +203,16 @@ hidden, so their bars stay out of the strip, and you hide them (see [Settings](#
 With Expo Router or React Navigation, put a nested stack in the trailing pane instead and draw Back when
 `detailShowsBack(depth, usePane().split)` (from `/layout`) is true.
 
+When your own state keeps the stack (a reducer, a router), pass it as `screens` (the screens above the first, bottom
+to top) with `onBack`, and `onPush` and `onPopToRoot` if screens call them. The stack draws your screens, marks the
+ones under the top as hidden panes, and asks you instead of changing anything:
+
+```tsx
+<DetailStack screens={pages.map(page => ({key: page.key, element: page.render()}))} onBack={pop} onExit={leave} renderStack={drawFrames}>
+  <Root />
+</DetailStack>
+```
+
 ### 6. Half the display and closed landscape
 
 In Split View the app gets half the open display: one pane at a time, like a phone, with the strip on the edge away
@@ -219,6 +232,8 @@ side and the sheet on the other. On a wide window keep the sheet a card at the b
 ```tsx
 <PaneLayout arrangement="sheet" leading={<Map />} trailing={<PlaceSheet />} />
 ```
+
+`dock` puts the sheet beside its map instead, left and right in halves, on a regular box in portrait too.
 
 | Normal iPhone | iPhone Duo, closed | iPhone Duo, open | Partly folded |
 | --- | --- | --- | --- |

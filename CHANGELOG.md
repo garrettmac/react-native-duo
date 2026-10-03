@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- `DetailStack` can follow your own state: `screens` (the screens above the first) with `onBack`, `onPush` and
+  `onPopToRoot`. It draws them and marks the ones under the top as hidden panes, and `push`, `back` and `popToRoot`
+  ask you instead of keeping a stack of their own.
+- `usePane()` has `edges`: the edges of its `PaneLayout` (or `Arrangement`), or of the window, the pane reaches, named
+  as a style names them. A layout's box is its own: inside a sheet, its edges are not the screen's. `PaneProvider` takes a pane without `edges` and reads them from where it sits.
+- A `PaneLayout` in a hidden pane hides both of its panes. It used to show them, so a page inside one kept hosting its
+  bars in the side strip from a blurred tab or a covered screen.
+- `PaneLayout` decides an automatic split from its own box: `minSplitWidth` (default 600) is the narrowest box that
+  splits without a fold. A list and its detail in a page sheet on an iPad used to split into halves narrower than a phone;
+  a list-detail nested in one half of the open iPhone Duo, or in an iPad window under 600 points, now shows one pane.
+- `PaneLayout` `dock` puts a `sheet` beside its map in halves on a regular box, portrait included.
+- A list and its detail at half the width split in the same halves as any split without a fold (the odd point on
+  the physical left in right to left too).
+
 - `DuoPage` keeps its content mounted when the pose moves its bars (between a column, its own strip and the
   strip around it). It used to remount the content, so a half-typed message or any other state was lost when the
   iPhone Duo was opened, closed or turned.
