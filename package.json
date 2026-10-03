@@ -1,6 +1,6 @@
 {
   "name": "@garrettmacmac/react-native-duo",
-  "version": "0.1.0-beta.0",
+  "version": "0.1.0-beta.1",
   "description": "iPhone Duo and foldables for React Native and Expo: size classes, the vertical bar edge, reserved regions (the fold and the cameras), arrangement views and pane layouts, with agent rules that teach coding agents Apple's Duo guidelines.",
   "main": "build/index.js",
   "types": "build/index.d.ts",

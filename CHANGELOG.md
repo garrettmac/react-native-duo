@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.1
 
 - `DetailStack` can follow your own state: `screens` (the screens above the first) with `onBack`, `onPush` and
   `onPopToRoot`. It draws them and marks the ones under the top as hidden panes, and `push`, `back` and `popToRoot`
