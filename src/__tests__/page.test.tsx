@@ -1,4 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
+import {useState} from 'react';
 import {Text} from 'react-native';
 
 import {DuoTestProvider} from '../DuoTestProvider';
@@ -151,5 +152,107 @@ describe('DuoPage', () => {
     expect(text('mode-detail')).toBe('hosted trailing');
     expect(screen.getByTestId(DUO_PAGE_STRIP_TESTID)).toContainElement(screen.getByTestId('detail-bar'));
     expect(screen.getByTestId(DUO_PAGE_STRIP_TESTID)).not.toContainElement(screen.getByTestId('list-bar'));
+  });
+});
+
+describe('DuoPage keeps its content mounted when the pose moves the bars', () => {
+  let mounts = 0;
+  function Draft() {
+    useState(() => {
+      mounts += 1;
+      return '';
+    });
+    return <Mode name="draft" />;
+  }
+  beforeEach(() => {
+    mounts = 0;
+  });
+
+  it('between a column and its own strip (horizontal and side)', async () => {
+    const tree = (pose: PoseName) => (
+      <DuoTestProvider pose={pose}>
+        <DuoPage topBar={top} bottomBar={bottom}>
+          <Draft />
+        </DuoPage>
+      </DuoTestProvider>
+    );
+    await render(tree('closed'));
+    expect(text('mode-draft')).toBe('side trailing');
+    await screen.rerender(tree('openPortrait'));
+    expect(text('mode-draft')).toBe('horizontal null');
+    await screen.rerender(tree('openLandscape'));
+    await screen.rerender(tree('closed'));
+    expect(text('mode-draft')).toBe('side trailing');
+    expect(mounts).toBe(1);
+  });
+
+  it('between the strip around it and a column (hosted and horizontal)', async () => {
+    const tree = (pose: PoseName) => (
+      <DuoTestProvider pose={pose}>
+        <DuoPage bottomBar={bottom}>
+          <DuoPage topBar={top}>
+            <Draft />
+          </DuoPage>
+        </DuoPage>
+      </DuoTestProvider>
+    );
+    await render(tree('closed'));
+    expect(text('mode-draft')).toBe('hosted trailing');
+    expect(screen.getByTestId(DUO_PAGE_STRIP_TESTID)).toContainElement(screen.getByTestId('top-side'));
+    await screen.rerender(tree('openPortrait'));
+    expect(text('mode-draft')).toBe('horizontal null');
+    expect(screen.getByTestId('top-top')).toBeTruthy();
+    await screen.rerender(tree('closed'));
+    expect(text('mode-draft')).toBe('hosted trailing');
+    expect(screen.getByTestId(DUO_PAGE_STRIP_TESTID)).toContainElement(screen.getByTestId('top-side'));
+    expect(mounts).toBe(1);
+  });
+
+  it('between its own strip and the strip around it (side and hosted)', async () => {
+    const tree = (shareSide: boolean) => (
+      <DuoTestProvider pose="closed">
+        <DuoPage bottomBar={bottom}>
+          <DuoPage topBar={top} shareSide={shareSide} mode="side">
+            <Draft />
+          </DuoPage>
+        </DuoPage>
+      </DuoTestProvider>
+    );
+    await render(tree(true));
+    expect(text('mode-draft')).toBe('hosted trailing');
+    await screen.rerender(tree(false));
+    expect(text('mode-draft')).toBe('side trailing');
+    await screen.rerender(tree(true));
+    expect(text('mode-draft')).toBe('hosted trailing');
+    expect(mounts).toBe(1);
+  });
+
+  it('keeps a page that does not share the strip in its own pane, bars and all, in every pose', async () => {
+    let composers = 0;
+    function Composer() {
+      useState(() => {
+        composers += 1;
+        return '';
+      });
+      return <Text testID="composer">Message</Text>;
+    }
+    const tree = (pose: PoseName) => (
+      <DuoTestProvider pose={pose}>
+        <DuoPage bottomBar={bottom}>
+          <DuoPage shareSide={false} topBar={top} bottomBar={<Composer />}>
+            <Draft />
+          </DuoPage>
+        </DuoPage>
+      </DuoTestProvider>
+    );
+    await render(tree('closed'));
+    expect(text('mode-draft')).toBe('horizontal null');
+    expect(screen.getByTestId(DUO_PAGE_STRIP_TESTID)).not.toContainElement(screen.getByTestId('composer'));
+    await screen.rerender(tree('openLandscape'));
+    expect(text('mode-draft')).toBe('horizontal null');
+    await screen.rerender(tree('closed'));
+    expect(text('mode-draft')).toBe('horizontal null');
+    expect(mounts).toBe(1);
+    expect(composers).toBe(1);
   });
 });

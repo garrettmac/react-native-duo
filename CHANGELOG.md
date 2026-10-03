@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `DuoPage` keeps its content mounted when the pose moves its bars (between a column, its own strip and the
+  strip around it). It used to remount the content, so a half-typed message or any other state was lost when the
+  iPhone Duo was opened, closed or turned.
+- A `DuoPage` with `shareSide={false}` inside another page's strip always keeps its bars in its own pane. It used to
+  stand them for a frame after a pose change, while its frame was stale, which remounted a composer in its bottom bar.
 - `DuoOverlay` and `DuoOverlayHost` draw a custom sheet above the page. Mounted inside `DuoPage`, a sheet's
   controls standing on the bar edge were covered by the side strip.
 - `useSheetPose` returns `columnInsetTop`, so the closed iPhone Duo's standing controls start below the camera

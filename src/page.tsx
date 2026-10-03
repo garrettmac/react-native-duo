@@ -6,7 +6,7 @@
  * A page inside a pane that does not touch the edge keeps its bars horizontal at the top of its pane, and a page
  * inside a pane that does gives its bars to the strip of the page around it, so a window has one strip per edge.
  */
-import {createContext, useContext, useEffect, useId, useMemo, useState, type ReactNode} from 'react';
+import {Fragment, createContext, useContext, useEffect, useId, useMemo, useState, type ReactNode} from 'react';
 import {I18nManager, StyleSheet, View, type StyleProp, type ViewStyle} from 'react-native';
 
 import {useCameraClearance} from './clearance';
@@ -139,7 +139,9 @@ export function DuoPage({
   const pane = usePane();
   const rtl = I18nManager.isRTL;
   const window = {x: 0, y: 0, width: state.window.width, height: state.window.height};
-  const automatic = pane.hidden ? 'horizontal' : pageMode({edge: state.verticalBarEdge, pane, window, host, rtl});
+  // A page that keeps its bars out of the strip around it sits beside that strip, so it never stands its own: deciding
+  // from its frame instead flips it to `side` for a frame while the frame is stale after a pose change, remounting its bars.
+  const automatic = pane.hidden || (outerHost && !shareSide) ? 'horizontal' : pageMode({edge: state.verticalBarEdge, pane, window, host, rtl});
   const mode: PageMode = forced === 'auto' ? automatic : forced === 'horizontal' ? 'horizontal' : automatic === 'hosted' ? 'hosted' : 'side';
   const edge = mode === 'side' ? (state.verticalBarEdge ?? 'trailing') : mode === 'hosted' ? host!.edge : null;
   const vertical = mode !== 'horizontal';
@@ -162,61 +164,7 @@ export function DuoPage({
     return () => host.contribute(id, null);
   }, [mode, host, id]);
 
-  const content = (
-    <Content pane={pane} style={contentStyle} host={mode === 'side' && edge ? edge : null} hostFrame={host && mode === 'hosted' ? host : null}>
-      {children}
-    </Content>
-  );
-
-  if (mode === 'horizontal') {
-    return (
-      <PageContext.Provider value={placement}>
-        <View testID={testID} style={[styles.column, style]}>
-          {wrap(draw(topBar, {position: 'top', vertical: false, edge: null}), topBarStyle)}
-          {content}
-          {wrap(draw(bottomBar, {position: 'bottom', vertical: false, edge: null}), bottomBarStyle)}
-        </View>
-      </PageContext.Provider>
-    );
-  }
-
-  if (mode === 'hosted') {
-    return (
-      <PageContext.Provider value={placement}>
-        <View testID={testID} style={[styles.column, style]}>
-          {content}
-        </View>
-      </PageContext.Provider>
-    );
-  }
-
-  return (
-    <PageContext.Provider value={placement}>
-      <SideHost edge={edge!} testID={testID} style={style} sideStyle={sideStyle} insetTop={sideInsetTop} insetBottom={sideInsetBottom} renderSide={renderSide} top={sideTop} bottom={sideBottom}>
-        {content}
-      </SideHost>
-    </PageContext.Provider>
-  );
-}
-
-const StripContext = createContext<((id: string, contribution: Contribution | null) => void) | null>(null);
-
-interface SideHostProps {
-  edge: 'leading' | 'trailing';
-  testID: string;
-  style?: StyleProp<ViewStyle>;
-  sideStyle?: StyleProp<ViewStyle>;
-  insetTop?: number;
-  insetBottom?: number;
-  renderSide?: (side: SideParts) => ReactNode;
-  top: ReactNode;
-  bottom: ReactNode;
-  children: ReactNode;
-}
-
-function SideHost({edge, testID, style, sideStyle, insetTop, insetBottom, renderSide, top, bottom, children}: SideHostProps) {
   const [contributions, setContributions] = useState<ReadonlyMap<string, Contribution>>(new Map());
-  const clearance = useCameraClearance();
   const contribute = useMemo(
     () => (id: string, contribution: Contribution | null) =>
       setContributions(previous => {
@@ -227,33 +175,54 @@ function SideHost({edge, testID, style, sideStyle, insetTop, insetBottom, render
       }),
     [],
   );
-  const hosted = [...contributions.entries()];
-  const parts: SideParts = {
-    edge,
-    top: [...hosted.map(([id, contribution]) => <View key={id}>{contribution.top}</View>), <View key="own">{top}</View>],
-    bottom: [...hosted.map(([id, contribution]) => <View key={id}>{contribution.bottom}</View>), <View key="own">{bottom}</View>],
-    insetTop: insetTop ?? clearance.top,
-    insetBottom: insetBottom ?? clearance.bottom,
-  };
-  const strip = renderSide ? (
-    renderSide(parts)
-  ) : (
-    <View testID={DUO_PAGE_STRIP_TESTID} style={[styles.strip, {paddingTop: parts.insetTop}, sideStyle, parts.insetBottom > 0 && {paddingBottom: parts.insetBottom}]}>
-      {parts.top}
-      <View style={styles.fill} />
-      {parts.bottom}
-    </View>
-  );
-  return (
-    <StripContext.Provider value={contribute}>
-      <View testID={testID} style={[styles.row, style]}>
-        {edge === 'leading' ? strip : null}
-        {children}
-        {edge === 'trailing' ? strip : null}
+  const clearance = useCameraClearance();
+
+  // One tree in every mode, so the content keeps its place (and its state) when the pose moves the bars.
+  let before: ReactNode = null;
+  let after: ReactNode = null;
+  if (mode === 'horizontal') {
+    before = wrap(draw(topBar, {position: 'top', vertical: false, edge: null}), topBarStyle);
+    after = wrap(draw(bottomBar, {position: 'bottom', vertical: false, edge: null}), bottomBarStyle);
+  } else if (mode === 'side') {
+    const hosted = [...contributions.entries()];
+    const parts: SideParts = {
+      edge: edge!,
+      top: [...hosted.map(([key, contribution]) => <View key={key}>{contribution.top}</View>), <View key="own">{sideTop}</View>],
+      bottom: [...hosted.map(([key, contribution]) => <View key={key}>{contribution.bottom}</View>), <View key="own">{sideBottom}</View>],
+      insetTop: sideInsetTop ?? clearance.top,
+      insetBottom: sideInsetBottom ?? clearance.bottom,
+    };
+    const strip = renderSide ? (
+      renderSide(parts)
+    ) : (
+      <View testID={DUO_PAGE_STRIP_TESTID} style={[styles.strip, {paddingTop: parts.insetTop}, sideStyle, parts.insetBottom > 0 && {paddingBottom: parts.insetBottom}]}>
+        {parts.top}
+        <View style={styles.fill} />
+        {parts.bottom}
       </View>
-    </StripContext.Provider>
+    );
+    if (edge === 'leading') before = strip;
+    else after = strip;
+  }
+
+  return (
+    <PageContext.Provider value={placement}>
+      <StripContext.Provider value={mode === 'side' ? contribute : null}>
+        <View testID={testID} style={[mode === 'side' ? styles.row : styles.column, style]}>
+          <Fragment key="before">{before}</Fragment>
+          <Fragment key="content">
+            <Content pane={pane} style={contentStyle} host={mode === 'side' && edge ? edge : null} hostFrame={host && mode === 'hosted' ? host : null}>
+              {children}
+            </Content>
+          </Fragment>
+          <Fragment key="after">{after}</Fragment>
+        </View>
+      </StripContext.Provider>
+    </PageContext.Provider>
   );
 }
+
+const StripContext = createContext<((id: string, contribution: Contribution | null) => void) | null>(null);
 
 function Content({pane, style, host, hostFrame, children}: {pane: Pane; style?: StyleProp<ViewStyle>; host: 'leading' | 'trailing' | null; hostFrame: Host | null; children: ReactNode}) {
   const {ref, onLayout, size, origin} = useArrangementBox();
