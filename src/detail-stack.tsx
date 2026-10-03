@@ -79,7 +79,6 @@ export function detailShowsBack(depth: number, besideList: boolean): boolean {
 
 let nextKey = 0;
 
-
 export function DetailStack({
   children,
   onExit,
