@@ -81,7 +81,7 @@
   "peerDependencies": {
     "expo": ">=53.0.0",
     "react": ">=19.0.0",
-    "react-native": ">=0.79.0"
+    "react-native": ">=0.79.0-0"
   },
   "devDependencies": {
     "@react-native/jest-preset": "0.86.3",
