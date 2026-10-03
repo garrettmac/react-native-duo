@@ -1,8 +1,8 @@
 /** The size a container laid out at, where it sits in the provider's root view (which region frames are in), and how to place a frame back in it. */
 import {useCallback, useRef, useState, type RefObject} from 'react';
-import {I18nManager, type LayoutChangeEvent, type View, type ViewStyle} from 'react-native';
+import {I18nManager, type LayoutChangeEvent, type ViewStyle} from 'react-native';
 
-import {useDuoContext} from './context';
+import {useDuoContext, type ViewRef} from './context';
 import type {Rect, WindowSize} from './types';
 
 /** A frame in physical points as an absolute style; React Native reads `right` as the left edge when it swaps sides in a right-to-left layout. */
@@ -21,7 +21,7 @@ function warnOnce() {
 }
 
 export interface ArrangementBox {
-  ref: RefObject<View | null>;
+  ref: RefObject<ViewRef | null>;
   onLayout: (event: LayoutChangeEvent) => void;
   size: WindowSize | null;
   origin: {x: number; y: number};
@@ -29,7 +29,7 @@ export interface ArrangementBox {
 
 export function useArrangementBox(): ArrangementBox {
   const {rootRef} = useDuoContext();
-  const ref = useRef<View>(null);
+  const ref = useRef<ViewRef>(null);
   const [size, setSize] = useState<WindowSize | null>(null);
   const [origin, setOrigin] = useState({x: 0, y: 0});
 

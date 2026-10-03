@@ -5,7 +5,7 @@
 import {useMemo, useRef, type ReactNode} from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import {DuoContext, fixedContext, type DuoContextValue} from './context';
+import {DuoContext, fixedContext, type DuoContextValue, type ViewRef} from './context';
 import {poses, type Pose, type PoseName} from './poses';
 import type {CameraDirections} from './types';
 
@@ -17,7 +17,7 @@ export interface DuoTestProviderProps {
 }
 
 export function DuoTestProvider({pose, cameras, children}: DuoTestProviderProps) {
-  const rootRef = useRef<View>(null);
+  const rootRef = useRef<ViewRef>(null);
   const resolved = typeof pose === 'string' ? poses[pose] : pose;
   const value = useMemo<DuoContextValue>(
     () => ({

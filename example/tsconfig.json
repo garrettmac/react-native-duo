@@ -6,6 +6,7 @@
       "@garrettmacmac/react-native-duo": ["../src/index.ts"],
       "@garrettmacmac/react-native-duo/layout": ["../src/layout.ts"],
       "@garrettmacmac/react-native-duo/testing": ["../src/testing.ts"],
+      "react-native": ["./node_modules/react-native/types_generated/index.d.ts"],
       "*": ["./node_modules/@types/*", "./node_modules/*"]
     }
   },

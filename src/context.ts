@@ -1,13 +1,16 @@
 /** The one context every hook and `Arrangement` reads: the provider's state and the root view regions are measured from. */
-import {createContext, useContext, useMemo, type RefObject} from 'react';
+import {createContext, useContext, useMemo, type ComponentRef, type RefObject} from 'react';
 import {useWindowDimensions, type View} from 'react-native';
 
 import {sizeClassFromWindow} from './sizes';
 import type {CameraDirections, DuoState, WindowSize} from './types';
 
+/** A mounted `View`: a class instance before React Native 0.88, a `ReactNativeElement` from it. */
+export type ViewRef = ComponentRef<typeof View>;
+
 export interface DuoContextValue {
   state: DuoState;
-  rootRef: RefObject<View | null> | null;
+  rootRef: RefObject<ViewRef | null> | null;
   cameras: CameraDirections;
   /** Asks the provider to follow camera directions; returns the call that stops asking. */
   watchCameras: () => () => void;

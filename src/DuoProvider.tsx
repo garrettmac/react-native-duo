@@ -5,14 +5,14 @@
 import {useCallback, useMemo, useRef, useState, type ReactNode} from 'react';
 import {StyleSheet, useWindowDimensions, View} from 'react-native';
 
-import {DuoContext, NO_CAMERAS, windowState, type DuoContextValue} from './context';
+import {DuoContext, NO_CAMERAS, windowState, type DuoContextValue, type ViewRef} from './context';
 import {loadObserverView} from './native';
 import {parseCameraDirections, parseSnapshot} from './snapshot';
 import type {CameraDirections, DuoSnapshot} from './types';
 
 export function DuoProvider({children}: {children: ReactNode}) {
   const {width, height} = useWindowDimensions();
-  const rootRef = useRef<View>(null);
+  const rootRef = useRef<ViewRef>(null);
   const [ObserverView] = useState(loadObserverView);
   const [snapshot, setSnapshot] = useState<DuoSnapshot | null>(null);
   const [cameras, setCameras] = useState<CameraDirections>(NO_CAMERAS);

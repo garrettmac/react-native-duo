@@ -19,6 +19,8 @@ First release, a beta until the native code has run on an iPhone Duo.
 - A list's detail: `DetailStack` and `useDetailStack` (push, back, `popToRoot`, `showBack`, `renderStack`), and
   `PaneLayout`'s sidebar width (`leadingFraction`, `minLeadingWidth`, `maxLeadingWidth`), `split` and pane styles.
 - Sheets: `useSheetPose`.
+- React Native 0.88, where `View` is a function component: `ArrangementBox.ref` is a
+  `RefObject<ComponentRef<typeof View> | null>`, which is the `View` instance on earlier versions.
 - Cameras: `useCameraDirections`, `forwardCamera`, `shouldMirror` (iOS 27.1's `AVCaptureDeviceDirectionCoordinator`).
 - Tests: `DuoTestProvider` and eleven poses (closed landscape included) from `@garrettmacmac/react-native-duo/testing`.
 - Agents: rules in `rules/` (core, full, Apple's guidance), a Claude Code skill and plugin, and
