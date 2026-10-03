@@ -48,7 +48,7 @@ export interface DetailStackProps {
   /**
    * The screens above the first, bottom to top, when your own state keeps the stack (a reducer, a router). The stack
    * then shows these, and `push`, `back` and `popToRoot` ask `onPush`, `onBack` and `onPopToRoot` instead of
-   * changing anything themselves.
+   * changing anything themselves; one you leave out does nothing. Pass `screens` for the stack's whole life.
    */
   screens?: DetailStackScreen[];
   /** With `screens`: Back above the first screen. Pop the top one. */
@@ -91,6 +91,9 @@ export function DetailStack({
   testID = DETAIL_STACK_TESTID,
 }: DetailStackProps) {
   const [own, setOwn] = useState<DetailStackScreen[]>([]);
+  if (__DEV__ && controlled !== undefined && onBack === undefined) {
+    console.warn('react-native-duo: a DetailStack given `screens` needs `onBack`, or Back above the first screen does nothing');
+  }
   const pushed = controlled ?? own;
   const isControlled = controlled !== undefined;
   const pane = usePane();
@@ -117,9 +120,10 @@ export function DetailStack({
   const showBack = depth === 1 && showBackOnRoot !== undefined ? showBackOnRoot : detailShowsBack(depth, besideList);
   const value = useMemo<DetailStackValue>(() => ({depth, push, back, popToRoot, showBack, besideList}), [depth, push, back, popToRoot, showBack, besideList]);
 
+  const covered = useMemo(() => ({...pane, hidden: true}), [pane]);
   const screens: DetailStackScreen[] = [{key: 'root', element: children}, ...pushed].map((screen, index, all) => ({
     key: screen.key,
-    element: <PaneProvider pane={index < all.length - 1 ? {...pane, hidden: true} : pane}>{screen.element}</PaneProvider>,
+    element: <PaneProvider pane={index < all.length - 1 ? covered : pane}>{screen.element}</PaneProvider>,
   }));
   const top = screens.length - 1;
 

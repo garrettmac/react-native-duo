@@ -14,8 +14,10 @@ import type {Axis, Rect, WindowSize} from './types';
 export type PaneSide = 'only' | 'leading' | 'trailing';
 
 /**
- * The edges of its box a pane reaches: the `PaneLayout` it is in, or the window outside one. `left` and `right` are the
- * sides a style names, so a right-to-left layout that swaps sides names the leading side `left`.
+ * The edges of its box a pane reaches: the `PaneLayout` or `Arrangement` it is in, or the window outside one. A
+ * layout's box is its own, not the window: inside a sheet or another pane, an edge of the box may not be the screen's
+ * edge. `left` and `right` are the sides a style names, so a right-to-left layout that swaps sides names the leading
+ * side `left`.
  */
 export interface PaneEdges {
   top: boolean;
@@ -36,7 +38,7 @@ export interface Pane {
   height: number;
   /** Mounted to keep its state but not on screen: a split view's detail behind its list on a compact window. */
   hidden: boolean;
-  /** Where the safe area and a screen's own insets still apply: the edges of its `PaneLayout`, or of the window, it reaches. */
+  /** The edges of its `PaneLayout`, `Arrangement` or window it reaches, where that layout's own insets still apply. */
   edges: PaneEdges;
 }
 
@@ -49,10 +51,6 @@ export function PaneProvider({pane, children}: {pane: PlacedPane; children: Reac
   return <PaneContext.Provider value={pane}>{children}</PaneContext.Provider>;
 }
 
-function edgesInWindow(pane: Rect, window: WindowSize): PaneEdges {
-  return {top: pane.y <= 0, bottom: pane.y + pane.height >= window.height, left: pane.x <= 0, right: pane.x + pane.width >= window.width};
-}
-
 /** The pane this component is in; outside any pane, the app's whole window. */
 export function usePane(): Pane {
   const placed = useContext(PaneContext);
@@ -60,7 +58,7 @@ export function usePane(): Pane {
   return useMemo(
     () =>
       placed
-        ? {...placed, edges: placed.edges ?? edgesInWindow(placed, window)}
+        ? {...placed, edges: placed.edges ?? edgesInBox(placed, window)}
         : {split: false, side: 'only', x: 0, y: 0, width: window.width, height: window.height, hidden: false, edges: ALL_EDGES},
     [placed, window],
   );

@@ -1,6 +1,6 @@
 import {render, renderHook, screen} from '@testing-library/react-native';
 import type {ReactNode} from 'react';
-import {StyleSheet, Text} from 'react-native';
+import {I18nManager, StyleSheet, Text} from 'react-native';
 
 import {DuoTestProvider} from '../DuoTestProvider';
 import {ALL_EDGES, PANE_LEADING_TESTID, PANE_TRAILING_TESTID, PaneLayout, PaneProvider, sidebarParts, sidebarWidth, usePane, useSplitWindow, type PaneArrangement} from '../pane';
@@ -164,6 +164,43 @@ describe('the edges each pane reaches', () => {
   });
 });
 
+describe('the edges each pane reaches, right to left', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it.each([
+    [true, {left: true, right: false}, {left: false, right: true}],
+    [false, {left: false, right: true}, {left: true, right: false}],
+  ])('names them as a style does when React Native swaps sides: %s', async (swap, leading, trailing) => {
+    jest.replaceProperty(I18nManager, 'isRTL', true);
+    const constants = I18nManager.getConstants();
+    jest.spyOn(I18nManager, 'getConstants').mockReturnValue({...constants, isRTL: true, doLeftAndRightSwapInRTL: swap});
+    await renderLayout('openLandscape', 'list-detail');
+    expect(paneOf('leading').edges).toMatchObject(leading);
+    expect(paneOf('trailing').edges).toMatchObject(trailing);
+    await render(
+      <DuoTestProvider pose="openLandscape">
+        <PaneProvider pane={{split: true, side: 'leading', x: 550, y: 0, width: 550, height: 951, hidden: false}}>
+          <PaneReport name="placed" />
+        </PaneProvider>
+      </DuoTestProvider>,
+    );
+    expect(paneOf('placed').edges).toMatchObject(leading);
+  });
+});
+
+describe('a nested PaneLayout', () => {
+  it('keeps one pane in half of the open Duo, narrower than minSplitWidth', async () => {
+    await render(
+      <DuoTestProvider pose="openLandscape">
+        <PaneProvider pane={{split: true, side: 'leading', x: 0, y: 0, width: 530, height: 951, hidden: false}}>
+          <PaneLayout arrangement="list-detail" leading={<PaneReport name="leading" />} trailing={<PaneReport name="trailing" />} />
+        </PaneProvider>
+      </DuoTestProvider>,
+    );
+    expect(paneOf('leading')).toMatchObject({split: false, width: 530});
+  });
+});
+
 describe('a PaneLayout in a hidden pane', () => {
   it('hides both of its panes, so neither hosts bars in the strip', async () => {
     await render(
@@ -176,6 +213,7 @@ describe('a PaneLayout in a hidden pane', () => {
     expect(paneOf('leading')).toMatchObject({split: true, hidden: true});
     expect(paneOf('trailing')).toMatchObject({split: true, hidden: true});
     expect(styleOf(PANE_LEADING_TESTID).display).toBeUndefined();
+    expect(styleOf(PANE_TRAILING_TESTID).display).toBeUndefined();
   });
 });
 
@@ -221,6 +259,16 @@ describe('a docked sheet', () => {
       expect(paneOf('trailing')).toMatchObject({split: true, side: 'trailing', hidden: false});
     }
     expect(styleOf(PANE_LEADING_TESTID)).toMatchObject({left: 0, width: 476});
+  });
+
+  it('still takes a side of an active fold', async () => {
+    await render(
+      <DuoTestProvider pose="partlyFolded">
+        <PaneLayout arrangement="sheet" dock leading={<PaneReport name="leading" />} trailing={<PaneReport name="trailing" />} />
+      </DuoTestProvider>,
+    );
+    expect(styleOf(PANE_LEADING_TESTID)).toMatchObject({left: 0, width: 530});
+    expect(styleOf(PANE_TRAILING_TESTID)).toMatchObject({left: 570, width: 530});
   });
 
   it('stays over its map on a phone and in a box narrower than minSplitWidth', async () => {
