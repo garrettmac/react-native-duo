@@ -21,6 +21,7 @@ export {DuoBar} from './duo-bar';
 export type {DuoBarContext, DuoBarProps} from './duo-bar';
 export type {BarItem, BarItemAxisBehavior, BarItemPriority, BarItemRole, UseVerticalBarOptions, VerticalBarCompression, VerticalBarLayout} from './bar';
 export {useSheetPose} from './sheet';
+export {DuoOverlay, DuoOverlayHost} from './overlay';
 export type {SheetPlacement, SheetPlacementPreference, SheetPose, SheetPoseOptions, VerticalBarBehavior} from './sheet';
 
 export {forwardCamera, shouldMirror, useCameraDirections} from './cameras';

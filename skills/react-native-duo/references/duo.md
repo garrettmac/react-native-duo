@@ -92,6 +92,8 @@ A summary of Apple's guidance, with the source of each line, is in
     on a compact window with its controls standing on the bar edge; centered on a regular window by default (or
     `'leading'`/`'trailing'`); always beside an active fold, never across it. Set `verticalBarBehavior: 'disabled'` for
     a sheet with a single action; its horizontal row then stops short of the outer camera (`rowSidePadding()` from `/layout`).
+    Standing controls start at `columnInsetTop`, below any camera over their column. Draw the sheet in `<DuoOverlay>`
+    under one `<DuoOverlayHost>` around the app's screens: mounted inside `DuoPage`, the side strip covers its controls.
 13. **Cameras by direction, not position.** On iPhone Duo a front camera can face away and a back camera can face the
     person as the device opens and closes. Pick the camera to show the person with `forwardCamera(useCameraDirections())`
     and mirror with `shouldMirror()`; never mirror because `position === 'front'`. Keep a code path for

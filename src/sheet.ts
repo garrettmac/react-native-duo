@@ -8,7 +8,7 @@ import {useMemo} from 'react';
 import {I18nManager} from 'react-native';
 
 import {activeDivision, splitParts} from './arrangement-layout';
-import {useCameraClearance} from './clearance';
+import {keepOut, useCameraClearance} from './clearance';
 import {useDuo} from './context';
 import type {Insets, ReservedRegion, SizeClass, VerticalBarEdge, WindowSize} from './types';
 
@@ -26,6 +26,8 @@ export interface SheetPlacement {
   width: number;
   /** The panel's height when it is fixed; null for a card sheet that takes its content's height. */
   height: number | null;
+  /** The panel's top edge in the window when its height is fixed (it stands on the window's bottom); null for a card sheet. */
+  y: number | null;
   /** Where the panel resolved to. */
   side: 'full' | 'center' | 'leading' | 'trailing';
 }
@@ -52,16 +54,19 @@ export function sheetPlacement({window, regions, regular, rtl, placement = 'auto
     const side = placement === 'leading' && division.axis === 'horizontal' ? 'leading' : 'trailing';
     const part = side === 'leading' ? leading : trailing;
     const height = division.axis === 'horizontal' ? fullHeight : part.height;
-    return {split: true, x: part.x, width: part.width, height, side};
+    return {split: true, x: part.x, width: part.width, height, y: window.height - height, side};
   }
   if (regular) {
     const [leading, trailing] = splitParts(window, 'horizontal', null, rtl);
-    if (placement === 'leading') return {split: true, x: leading.x, width: leading.width, height: fullHeight, side: 'leading'};
-    if (placement === 'trailing') return {split: true, x: trailing.x, width: trailing.width, height: fullHeight, side: 'trailing'};
+    const y = window.height - fullHeight;
+    if (placement === 'leading') return {split: true, x: leading.x, width: leading.width, height: fullHeight, y, side: 'leading'};
+    if (placement === 'trailing') return {split: true, x: trailing.x, width: trailing.width, height: fullHeight, y, side: 'trailing'};
     const width = trailing.width;
-    return {split: true, x: Math.round((window.width - width) / 2), width, height: fullHeight, side: 'center'};
+    return {split: true, x: Math.round((window.width - width) / 2), width, height: fullHeight, y, side: 'center'};
   }
-  return {split: false, x: 0, width: window.width, height: modal ? window.height - topGap : null, side: 'full'};
+  return modal
+    ? {split: false, x: 0, width: window.width, height: window.height - topGap, y: topGap, side: 'full'}
+    : {split: false, x: 0, width: window.width, height: null, y: null, side: 'full'};
 }
 
 export interface SheetControlsInput {
@@ -92,12 +97,53 @@ export function rowSidePadding(clearance: Insets, placement: Pick<SheetPlacement
   return swapped ? {paddingLeft: right, paddingRight: left} : {paddingLeft: left, paddingRight: right};
 }
 
+export interface ColumnInsetInput {
+  regions: readonly ReservedRegion[];
+  placement: Pick<SheetPlacement, 'x' | 'width'>;
+  /** The panel's top edge in the window: `placement.y`, or a card sheet's measured top. */
+  panelTop: number;
+  /** The bar edge the column stands on. */
+  edge: 'leading' | 'trailing';
+  rtl: boolean;
+  /** The column's width. */
+  columnWidth: number;
+  /** The padding the column keeps when no camera is above it. */
+  base: number;
+}
+
+/**
+ * The top padding a vertical column of sheet controls keeps so its first control lands below every active camera
+ * occlusion (grown by its margins) that the column's own strip of the panel runs under. A camera elsewhere along the
+ * top, such as over the other side of the panel, moves nothing.
+ */
+export function columnInsetTop({regions, placement, panelTop, edge, rtl, columnWidth, base}: ColumnInsetInput): number {
+  const physicalLeft = (edge === 'leading') !== rtl;
+  const left = physicalLeft ? placement.x : placement.x + placement.width - columnWidth;
+  const right = left + columnWidth;
+  const boxes = regions
+    .filter(region => region.kind === 'occlusion' && region.isActive)
+    .map(keepOut)
+    .filter(box => box.x < right && box.x + box.width > left)
+    .sort((a, b) => a.y - b.y);
+  // The first control is about as tall as the column is wide; a camera it would touch pushes it down past the camera.
+  let inset = base;
+  for (const box of boxes) {
+    const top = panelTop + inset;
+    if (box.y < top + columnWidth && box.y + box.height > top) inset = box.y + box.height - panelTop;
+  }
+  return inset;
+}
+
 export interface SheetPoseOptions {
   placement?: SheetPlacementPreference;
   verticalBarBehavior?: VerticalBarBehavior;
   modal?: boolean;
   insetTop?: number;
   topGap?: number;
+  /** The width of the column the controls stand in when they stand vertical, for clearing the cameras. Default 44. */
+  columnWidth?: number;
+  /** The padding the vertical column keeps above its first control when no camera is above it. Default 0. */
+  columnPadding?: number;
 }
 
 export interface SheetPose {
@@ -108,10 +154,23 @@ export interface SheetPose {
   edge: VerticalBarEdge;
   /** How far a horizontal row keeps from the cameras. */
   clearance: Insets;
+  /**
+   * The top padding the vertical column keeps so its controls clear the cameras over it; null when the controls are
+   * in a row, or for a card sheet, whose top only its layout knows (pass the measured top to `columnInsetTop()`).
+   */
+  columnInsetTop: number | null;
 }
 
 /** Everything a custom sheet needs to follow the pose, re-read on every change. */
-export function useSheetPose({placement = 'automatic', verticalBarBehavior = 'automatic', modal = true, insetTop = 0, topGap = 0}: SheetPoseOptions = {}): SheetPose {
+export function useSheetPose({
+  placement = 'automatic',
+  verticalBarBehavior = 'automatic',
+  modal = true,
+  insetTop = 0,
+  topGap = 0,
+  columnWidth = 44,
+  columnPadding = 0,
+}: SheetPoseOptions = {}): SheetPose {
   const {window, regions, sizeClass, verticalBarEdge} = useDuo();
   const clearance = useCameraClearance();
   const regular = sizeClass.horizontal === 'regular';
@@ -120,5 +179,12 @@ export function useSheetPose({placement = 'automatic', verticalBarBehavior = 'au
     [window, regions, regular, placement, insetTop, topGap, modal],
   );
   const vertical = sheetControlsStandVertical({edge: verticalBarEdge, sizeClass, side: resolved.side, verticalBarBehavior});
-  return {window, placement: resolved, vertical, edge: verticalBarEdge, clearance};
+  const inset = useMemo(
+    () =>
+      vertical && verticalBarEdge !== null && resolved.y !== null
+        ? columnInsetTop({regions, placement: resolved, panelTop: resolved.y, edge: verticalBarEdge, rtl: I18nManager.isRTL, columnWidth, base: columnPadding})
+        : null,
+    [vertical, verticalBarEdge, resolved, regions, columnWidth, columnPadding],
+  );
+  return {window, placement: resolved, vertical, edge: verticalBarEdge, clearance, columnInsetTop: inset};
 }

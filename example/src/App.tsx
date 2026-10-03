@@ -2,7 +2,7 @@
  * The example app: every demo inside the Shell, either live on this device or in a simulated pose. Pick a pose at the
  * bottom to see the same screens on a closed or open iPhone Duo, partly folded, in a split view or on an iPad.
  */
-import {DuoProvider} from '@garrettmacmac/react-native-duo';
+import {DuoOverlayHost, DuoProvider} from '@garrettmacmac/react-native-duo';
 import {POSE_NAMES} from '@garrettmacmac/react-native-duo/testing';
 import {StatusBar} from 'expo-status-bar';
 import {useState} from 'react';
@@ -65,9 +65,11 @@ function Demos({insetTop}: {insetTop: number}) {
   const Screen = SCREENS[current];
   return (
     <View style={styles.fill}>
-      <Shell demos={DEMOS} current={current} onPick={setCurrent} insetTop={insetTop}>
-        {current === 'cases' ? <CasesScreen onOpen={setOpenCase} /> : <Screen />}
-      </Shell>
+      <DuoOverlayHost>
+        <Shell demos={DEMOS} current={current} onPick={setCurrent} insetTop={insetTop}>
+          {current === 'cases' ? <CasesScreen onOpen={setOpenCase} /> : <Screen />}
+        </Shell>
+      </DuoOverlayHost>
       <RegionOverlay />
     </View>
   );

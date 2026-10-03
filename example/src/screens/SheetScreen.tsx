@@ -1,9 +1,9 @@
 /**
- * A custom sheet that follows the pose: full width closed with its controls standing on the bar edge, centered or to
- * one side open, beside the fold when partly folded. `useSheetPose` places it in window points, so the sheet covers
- * the whole window from wherever it is mounted.
+ * A custom sheet that follows the pose: full width closed with its controls standing on the bar edge, below the
+ * camera, centered or to one side open, beside the fold when partly folded. `useSheetPose` places it in window
+ * points and `DuoOverlay` draws it above the page, so the side strip never covers the controls on its edge.
  */
-import {useSheetPose, type SheetPlacementPreference, type VerticalBarBehavior} from '@garrettmacmac/react-native-duo';
+import {DuoOverlay, useSheetPose, type SheetPlacementPreference, type VerticalBarBehavior} from '@garrettmacmac/react-native-duo';
 import {rowSidePadding, useArrangementBox} from '@garrettmacmac/react-native-duo/layout';
 import {useState} from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
@@ -28,7 +28,7 @@ function Control({glyph, title, prominent = false, vertical, onPress}: {glyph: s
 
 function Sheet({placement, behavior, onClose}: {placement: SheetPlacementPreference; behavior: VerticalBarBehavior; onClose: () => void}) {
   const colors = useColors();
-  const pose = useSheetPose({placement, verticalBarBehavior: behavior, topGap: Spacing.xxl});
+  const pose = useSheetPose({placement, verticalBarBehavior: behavior, topGap: Spacing.xxl, columnWidth: Layout.barWidth, columnPadding: Spacing.md});
   const {ref, onLayout, origin} = useArrangementBox();
   const {x, width, height} = pose.placement;
   const row = rowSidePadding(pose.clearance, pose.placement, pose.window.width, Spacing.lg);
@@ -49,7 +49,7 @@ function Sheet({placement, behavior, onClose}: {placement: SheetPlacementPrefere
             pose.vertical && {flexDirection: pose.edge === 'trailing' ? 'row-reverse' : 'row'},
           ]}>
           {pose.vertical ? (
-            <View style={[styles.verticalControls, {borderColor: colors.border}]}>{controls}</View>
+            <View style={[styles.verticalControls, {borderColor: colors.border, paddingTop: pose.columnInsetTop ?? Spacing.md}]}>{controls}</View>
           ) : (
             <View style={[styles.horizontalControls, row]}>{controls}</View>
           )}
@@ -88,7 +88,11 @@ export function SheetScreen() {
         </Card>
         <Button label="Open the sheet" selected onPress={() => setOpen(true)} />
       </Page>
-      {open ? <Sheet placement={placement} behavior={behavior} onClose={() => setOpen(false)} /> : null}
+      {open ? (
+        <DuoOverlay>
+          <Sheet placement={placement} behavior={behavior} onClose={() => setOpen(false)} />
+        </DuoOverlay>
+      ) : null}
     </View>
   );
 }

@@ -274,8 +274,11 @@ the frames; `useCameraClearance()` and `clearancePadding()` keep an immersive sc
 ### 11. A sheet of your own: `useSheetPose`
 
 ```tsx
-const {placement, vertical, edge, clearance} = useSheetPose({placement: 'automatic', verticalBarBehavior: 'automatic'});
+const {placement, vertical, edge, clearance, columnInsetTop} = useSheetPose({placement: 'automatic', verticalBarBehavior: 'automatic', columnWidth: 64});
 // placement: {side: 'full' | 'center' | 'leading' | 'trailing', x, y, width, height}
+// columnInsetTop: the vertical column's top padding, below any camera over it
+
+<DuoOverlay>{/* the sheet */}</DuoOverlay> // drawn in the DuoOverlayHost around your screens, above DuoPage's side strip
 ```
 
 | Normal iPhone | iPhone Duo, closed | iPhone Duo, open | Partly folded |

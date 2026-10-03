@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- `DuoOverlay` and `DuoOverlayHost` draw a custom sheet above the page. Mounted inside `DuoPage`, a sheet's
+  controls standing on the bar edge were covered by the side strip.
+- `useSheetPose` returns `columnInsetTop`, so the closed iPhone Duo's standing controls start below the camera
+  over their column (new options `columnWidth` and `columnPadding`); `columnInsetTop()` is the math, from `/layout`.
+- `SheetPlacement` has `y`, the panel's top edge (null for a card sheet), as the README already showed.
+
 ## 0.1.0-beta.0
 
 First release, a beta until the native code has run on an iPhone Duo.

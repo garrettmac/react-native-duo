@@ -13,12 +13,13 @@ export {DUO_PAGE_CONTENT_TESTID, DUO_PAGE_STRIP_TESTID, DUO_PAGE_TESTID, pageMod
 export {usePaneBarEdge} from './page-context';
 export {DETAIL_STACK_TESTID, detailShowsBack} from './detail-stack';
 export {DUO_BAR_TESTID} from './duo-bar';
+export {DUO_OVERLAY_TESTID} from './overlay';
 export {evenColumnCount} from './grid';
 export {activeFold, avoidanceOffset} from './fold';
 export {NO_CLEARANCE, cameraClearance, maxInsets} from './clearance';
 export {verticalBarLayout} from './bar';
 export type {VerticalBarInput} from './bar';
-export {rowSidePadding, sheetControlsStandVertical, sheetPlacement} from './sheet';
-export type {SheetControlsInput, SheetPlacementInput} from './sheet';
+export {columnInsetTop, rowSidePadding, sheetControlsStandVertical, sheetPlacement} from './sheet';
+export type {ColumnInsetInput, SheetControlsInput, SheetPlacementInput} from './sheet';
 export {REGULAR_HEIGHT_MIN_DP, REGULAR_WIDTH_MIN_DP, sizeClassFromWindow} from './sizes';
 export type {ArrangementKind, DuoSnapshot} from './types';

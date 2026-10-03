@@ -19,5 +19,5 @@ or changing UI, read `duo.md` beside this file (the full rules and API); `apple-
    follows `useVerticalBarEdge()` and `useVerticalBar()`: Back or Close on top, then the prominent action; every item
    has a symbol and a title; one overflow menu.
 8. Content insets from the bar (`useBarInsets()`); only immersive, non-scrolling screens center on the full display.
-9. Custom sheets follow `useSheetPose()`; cameras are picked and mirrored by `useCameraDirections()`, never position.
+9. Custom sheets follow `useSheetPose()` and draw in `<DuoOverlay>`; cameras are picked and mirrored by `useCameraDirections()`, never position.
 10. Test every screen under `DuoTestProvider` for each of `POSE_NAMES` (`@garrettmacmac/react-native-duo/testing`).

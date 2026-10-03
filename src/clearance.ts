@@ -16,7 +16,8 @@ type Edge = keyof Insets;
 
 const EDGES: readonly Edge[] = ['top', 'bottom', 'left', 'right'];
 
-function keepOut({frame, margins}: ReservedRegion): Rect {
+/** A region's frame grown by its margins: what controls keep out of. */
+export function keepOut({frame, margins}: ReservedRegion): Rect {
   return {
     x: frame.x - margins.left,
     y: frame.y - margins.top,
