@@ -84,6 +84,9 @@ bottom. There is no room for a title in the strip, so draw it in the content whe
 Pages nest. A `DuoPage` in the pane against the strip gives its bars to that strip, so a window has one strip, as in
 Apple's Mail. A page in a pane away from the edge keeps its bars across the top of its pane.
 
+The content stays mounted while the bars move between the top, the strip and the strip around it, so a draft or a
+scroll position survives opening, closing and turning the iPhone Duo.
+
 | Prop | What it does |
 | --- | --- |
 | `topBar`, `bottomBar` | An element, or `(placement) => element` with `{position: 'top' \| 'bottom' \| 'side', vertical, edge}` |

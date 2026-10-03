@@ -61,6 +61,8 @@ A summary of Apple's guidance, with the source of each line, is in
    top of its pane. Draw a bar as a function of `{vertical, edge}` or pass `sideTopBar`/`sideBottomBar`; when
    `usePage().vertical`, draw the title in the content. Use `shareSide={false}` for a pane whose bar holds a text field,
    `mode="horizontal"` for a player whose controls never move, `renderSide` to draw the strip yourself.
+   The content stays mounted when the bars move, so its state (a draft, a scroll position) survives folding and
+   turning; don't key a `DuoPage` or its content by pose.
    - Bar items: `<DuoBar items renderItem>` lays them out by the rules below; give a navigation bar and a toolbar the
      same `items` with `part="top"` and `part="bottom"`, and a `renderOverflow` for the More menu.
    - Deeper in a list's detail: wrap the trailing pane in `<DetailStack key={selected} onExit>` and `push` from
